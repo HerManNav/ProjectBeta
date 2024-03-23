@@ -14,5 +14,6 @@ enum class ECombatState : uint8
 {
 	ECS_Patrolling UMETA(DisplayName = "Patrolling"),
 	ECS_Chasing UMETA(DisplayName = "Chasing"),
-	ECS_Attacking UMETA(DisplayName = "Attacking")
+	ECS_Attacking UMETA(DisplayName = "Attacking"),
+	ECS_Dead UMETA(DisplayName = "Dead"),
 };

@@ -150,7 +150,7 @@ private:
 	void finishedTimer();
 
 	/*
-	* Death variables
+	* Death
 	*/
 
 	UPROPERTY(VisibleDefaultsOnly)
@@ -167,6 +167,7 @@ private:
 
 	float deathPetals_delay = 3.f;			// Time before start to play the deathPetals particles
 
+	void playDeathMontage();
 	void die();
 	void fadeOut();
 

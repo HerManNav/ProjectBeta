@@ -145,10 +145,83 @@ void AEnemy::getHit_Implementation(const FVector& hitPoint)
 		UGameplayStatics::SpawnEmitterAtLocation(this, hitVFX, hitPoint);
 }
 
+/*
+* Take damage
+*/
+
+float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if (attributes && healthBar)
+	{
+		attributes->takeDamage(DamageAmount);
+		healthBar->setPercentage(attributes->getHealthPercent());
+		 
+		bool hasDied = !attributes->isAlive();
+		if (hasDied)
+		{
+			playDeathMontage();
+
+			die();
+			fadeOut();
+		}
+		else
+		{
+			combatState = ECombatState::ECS_Chasing;
+
+			GetCharacterMovement()->MaxWalkSpeed = attributes->getChasingSpeed();
+
+			combatTarget = EventInstigator->GetPawn();
+
+			setFocalPointToActor(combatTarget);
+			moveToTarget(combatTarget, attackRadius - 110.f);
+		}
+	}
+
+	return DamageAmount;
+}
+
+void AEnemy::playDeathMontage()
+{
+	if (deathMontage)
+	{
+		if (deathIndex == -1)
+			deathIndex = FMath::RandRange(0, deathMontage->GetNumSections() - 1);
+
+		playMontage(deathMontage, deathMontage->GetSectionName(deathIndex));
+
+		switch (deathIndex)
+		{
+		case(0):
+			livingState = ELivingState::ELS_Dead1;
+			break;
+		case(1):
+			livingState = ELivingState::ELS_Dead2;
+			break;
+		case(2):
+			livingState = ELivingState::ELS_Dead3;
+			break;
+		default:
+			break;
+		}
+	}
+}
+
 void AEnemy::die()
 {
-	healthBar->DestroyComponent();
+	healthBar->SetVisibility(false);
 
+	// Stop doing whatever it is doing
+	combatState = ECombatState::ECS_Dead;
+	GetWorldTimerManager().ClearTimer(patrolTimer);
+
+	if (aiController)
+	{
+		aiController->StopMovement();
+		aiController->ClearFocus(EAIFocusPriority::Gameplay);
+	}
+	SetActorTickEnabled(false);
+
+	// Disable all collisions
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Ignore);
 
@@ -161,19 +234,19 @@ void AEnemy::fadeOut()
 	float dithering_initial = dithering;
 
 	auto decreaseDitheringOnMaterial = [&]()
-	{
-		if (dynamicMaterial)
 		{
-			dynamicMaterial->SetScalarParameterValue("dithering", dithering -= dithering_fadeOutRate);
-			if (GetMesh()) GetMesh()->SetMaterial(0, dynamicMaterial);
-		}
-	};
+			if (dynamicMaterial)
+			{
+				dynamicMaterial->SetScalarParameterValue("dithering", dithering -= dithering_fadeOutRate);
+				if (GetMesh()) GetMesh()->SetMaterial(0, dynamicMaterial);
+			}
+		};
 
 	auto activateDeathPetals = [&]()
-	{
-		if (deathPetals)
-			deathPetals->Activate(true);
-	};
+		{
+			if (deathPetals)
+				deathPetals->Activate(true);
+		};
 
 	FTimerHandle timerHandler_dithering;
 	GetWorldTimerManager().SetTimer(timerHandler_dithering, decreaseDitheringOnMaterial, dithering_execRate, true, dithering_delay);
@@ -206,53 +279,9 @@ void AEnemy::resetFocalPoint()
 	setFocalPointToActor(nullptr);
 }
 
-float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
-{
-	if (attributes && healthBar)
-	{
-		attributes->takeDamage(DamageAmount);
-		healthBar->setPercentage(attributes->getHealthPercent());
-
-		if (!attributes->isAlive() && deathMontage)
-		{
-			if (deathIndex == -1)
-				deathIndex = FMath::RandRange(0, deathMontage->GetNumSections() - 1);
-
-			playMontage(deathMontage, deathMontage->GetSectionName(deathIndex));
-
-			switch (deathIndex)
-			{
-			case(0):
-				livingState = ELivingState::ELS_Dead1;
-				break;
-			case(1):
-				livingState = ELivingState::ELS_Dead2;
-				break;
-			case(2):
-				livingState = ELivingState::ELS_Dead3;
-				break;
-			default:
-				break;
-			}
-
-			die();
-			fadeOut();
-		}
-
-		combatState = ECombatState::ECS_Chasing;
-
-		GetCharacterMovement()->MaxWalkSpeed = attributes->getChasingSpeed();
-
-		currentPatrolTarget = nullptr;
-
-		combatTarget = EventInstigator->GetPawn();
-
-		setFocalPointToActor(combatTarget);
-		moveToTarget(combatTarget, attackRadius - 110.f);
-	}
-
-	return DamageAmount;
-}
+/* 
+* Tick and general methods
+*/
 
 void AEnemy::Tick(float DeltaTime)
 {
