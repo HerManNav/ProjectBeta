@@ -82,6 +82,10 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+/*
+* GetHit 
+*/
+
 FName AEnemy::getHitDirection(const FVector& hitPoint)
 {
 	FVector actorForwardVector = GetActorForwardVector().GetSafeNormal();
@@ -131,10 +135,17 @@ void AEnemy::getHit_Implementation(const FVector& hitPoint)
 	if (healthBar)
 		healthBar->SetVisibility(true);
 
-	if (attributes && attributes->isAlive())
+	if (attributes->isAlive())
 	{
 		FName directionName = getHitDirection(hitPoint);
 		playMontage(hitMontage, directionName);
+	}
+	else
+	{
+		playDeathMontage();
+
+		die();
+		fadeOut();
 	}
 
 	// Play sfx and vfx in any case
@@ -143,41 +154,6 @@ void AEnemy::getHit_Implementation(const FVector& hitPoint)
 
 	if (hitVFX)
 		UGameplayStatics::SpawnEmitterAtLocation(this, hitVFX, hitPoint);
-}
-
-/*
-* Take damage
-*/
-
-float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
-{
-	if (attributes && healthBar)
-	{
-		attributes->takeDamage(DamageAmount);
-		healthBar->setPercentage(attributes->getHealthPercent());
-		 
-		bool hasDied = !attributes->isAlive();
-		if (hasDied)
-		{
-			playDeathMontage();
-
-			die();
-			fadeOut();
-		}
-		else
-		{
-			combatState = ECombatState::ECS_Chasing;
-
-			GetCharacterMovement()->MaxWalkSpeed = attributes->getChasingSpeed();
-
-			combatTarget = EventInstigator->GetPawn();
-
-			setFocalPointToActor(combatTarget);
-			moveToTarget(combatTarget, attackRadius - 110.f);
-		}
-	}
-
-	return DamageAmount;
 }
 
 void AEnemy::playDeathMontage()
@@ -211,7 +187,6 @@ void AEnemy::die()
 	healthBar->SetVisibility(false);
 
 	// Stop doing whatever it is doing
-	combatState = ECombatState::ECS_Dead;
 	GetWorldTimerManager().ClearTimer(patrolTimer);
 
 	if (aiController)
@@ -219,6 +194,7 @@ void AEnemy::die()
 		aiController->StopMovement();
 		aiController->ClearFocus(EAIFocusPriority::Gameplay);
 	}
+
 	SetActorTickEnabled(false);
 
 	// Disable all collisions
@@ -230,7 +206,7 @@ void AEnemy::die()
 
 void AEnemy::fadeOut()
 {
-	// BUG: this method crashes sometimes. Ideas: the functions might need to get extracted in order to be class methods, just like the handlers themselves (using local variables is not a good idea for timers?)
+	// BUG: this method crashes sometimes. Ideas: the lambda functions might need to get extracted in order to be class methods, just like the handlers themselves (using local variables is not a good idea for timers?)
 	float dithering_initial = dithering;
 
 	auto decreaseDitheringOnMaterial = [&]()
@@ -256,6 +232,32 @@ void AEnemy::fadeOut()
 
 	SetLifeSpan(dithering_delay + dithering_initial / dithering_fadeOutRate * dithering_execRate + dithering_extraTime);
 	//GetWorldTimerManager().ClearTimer(timerHandler);		// Not needed since at the end of the lifespan this actor is destroyed? And so it is its timers.
+}
+
+/*
+* Take damage
+*/
+
+float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if (!attributes) return -1.f;
+
+	attributes->takeDamage(DamageAmount);
+	if (healthBar)
+		healthBar->setPercentage(attributes->getHealthPercent());
+
+	bool isStillAlive = attributes->isAlive();
+	if (isStillAlive)		// Start chasing in case the Character attacks from behind (and Enemy doesn't see it). Combine this with OnHearNoise and it could be a nice stealth mechanic
+	{
+		combatState = ECombatState::ECS_Chasing;
+		combatTarget = EventInstigator->GetPawn();
+
+		GetCharacterMovement()->MaxWalkSpeed = attributes->getChasingSpeed();
+		setFocalPointToActor(combatTarget);
+		moveToTarget(combatTarget, attackRadius - 110.f);
+	}
+
+	return DamageAmount;
 }
 
 void AEnemy::setFocalPointToActor(AActor* actor)
