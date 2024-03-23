@@ -2,6 +2,7 @@
 
 
 #include "Enemies/Enemy.h"
+#include "Characters/SlashCharacter.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -16,6 +17,7 @@
 #include "NiagaraComponent.h"
 
 #include "AIController.h"
+#include "Perception/PawnSensingComponent.h"
 
 AEnemy::AEnemy()
 {
@@ -29,6 +31,10 @@ AEnemy::AEnemy()
 	deathPetals = CreateDefaultSubobject<UNiagaraComponent>(TEXT("niagara_deathPetals"));
 	deathPetals->SetupAttachment(GetMesh(), TEXT("Hips"));
 
+	sensingComponent = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("sensingComponent"));
+	sensingComponent->SightRadius = 3000.f;
+	sensingComponent->SetPeripheralVisionAngle(60.f);
+
 	GetMesh()->SetGenerateOverlapEvents(true);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	GetMesh()->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
@@ -37,10 +43,9 @@ AEnemy::AEnemy()
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
+	GetCharacterMovement()->MaxWalkSpeed = attributes->getPatrollingSpeed();
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = false;
-
-	patrolPointIndex = 0;
 }
 
 void AEnemy::BeginPlay()
@@ -64,6 +69,9 @@ void AEnemy::BeginPlay()
 	aiController = Cast<AAIController>(GetController());
 	if (currentPatrolTarget)
 		moveToTarget(currentPatrolTarget);
+
+	if (sensingComponent)
+		sensingComponent->OnSeePawn.AddDynamic(this, &AEnemy::seenPawn);
 }
 
 void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -146,6 +154,7 @@ void AEnemy::die()
 
 void AEnemy::fadeOut()
 {
+	// BUG: this method crashes sometimes. Ideas: the functions might need to get extracted in order to be class methods, just like the handlers themselves (using local variables is not a good idea for timers?)
 	float dithering_initial = dithering;
 
 	auto decreaseDitheringOnMaterial = [&]()
@@ -217,8 +226,10 @@ void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	combat();
-	patrol();
+	if (combatState != ECombatState::ECS_Patrolling)	// Pawn seen!
+		combat();
+	else												// Pawn out of the combat range
+		patrol();
 }
 
 bool AEnemy::isActorWithinRadius(AActor* actor, float radius)
@@ -240,15 +251,62 @@ bool AEnemy::isActorWithinRadius(AActor* actor, float radius)
 * Combat
 */
 
+void AEnemy::seenPawn(APawn* pawn)
+{
+	if (combatState != ECombatState::ECS_Patrolling) return;
+
+	UE_LOG(LogTemp, Warning, TEXT("Pawn seen first time!"));
+	if (pawn->ActorHasTag(FName("SlashCharacter")))		// Casting is very expensive to be performed multiple times (ASlashCharacter * character = Cast<ASlashCharacter>(pawn))
+	{
+		bool shouldChaseCharacter = isActorWithinRadius(pawn, combatRadius);
+		if (shouldChaseCharacter && combatState == ECombatState::ECS_Patrolling)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Pawn chasing first time!"));
+			combatState = ECombatState::ECS_Chasing;
+
+			GetCharacterMovement()->MaxWalkSpeed = attributes->getChasingSpeed();
+
+			GetWorldTimerManager().ClearTimer(patrolTimer);
+
+			combatTarget = pawn;
+			moveToTarget(combatTarget, attackRadius - 110.f);
+		}
+	}
+}
+
 void AEnemy::combat()
 {
-	if (healthBar)
+	bool isActorInRange = isActorWithinRadius(combatTarget, combatRadius);
+	if (!isActorInRange)																						// Should get back to patrol
 	{
-		bool isActorOutOfRange = !isActorWithinRadius(combatTarget, combatRadius);
-		if (isActorOutOfRange)
-			healthBar->SetHiddenInGame(true);
-		else
-			healthBar->SetHiddenInGame(false);
+		combatState = ECombatState::ECS_Patrolling;
+
+		combatTarget = nullptr;
+
+		if (healthBar)
+			healthBar->SetVisibility(false);
+
+		GetCharacterMovement()->MaxWalkSpeed = attributes->getPatrollingSpeed();
+		moveToTarget(currentPatrolTarget);
+
+		UE_LOG(LogTemp, Warning, TEXT("Get back to patrol!"));
+	}
+	else if (!isActorWithinRadius(combatTarget, attackRadius) && combatState != ECombatState::ECS_Chasing)										// Should keep chasing
+	{
+		combatState = ECombatState::ECS_Chasing;
+
+		GetCharacterMovement()->MaxWalkSpeed = attributes->getChasingSpeed();
+
+		moveToTarget(combatTarget, attackRadius - 110.f);
+
+		UE_LOG(LogTemp, Warning, TEXT("Keep chasing!"));
+	}
+	else if (isActorWithinRadius(combatTarget, attackRadius) && combatState != ECombatState::ECS_Attacking)		// Should attack
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Attacking!"));
+		combatState = ECombatState::ECS_Attacking;
+
+
 	}
 }
 
@@ -289,7 +347,7 @@ AActor* AEnemy::selectNextPatrolTarget()
 
 	return nullptr;
 
-	//// This code can be used for future enhancement (if an enemy lose a target for whatever reason, it should be moved to its closest location first)
+	//// This code can be used for future enhancement (if an enemy lose a target for whatever reason, it should be moved to its closest patrol point first)
 	//int16 closestPatrolPoint = 0;
 	//float closestPatrolPoint_dist = std::numeric_limits<float>::max();
 	//for (int i = 0; i < validPatrolPoints.Num(); i++)

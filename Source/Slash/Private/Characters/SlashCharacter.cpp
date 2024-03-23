@@ -51,7 +51,7 @@ void ASlashCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UE_LOG(LogTemp, Warning, TEXT("controller initial rotation %s"), *GetController()->GetControlRotation().ToString());
+	Tags.Add(FName("SlashCharacter"));
 
 	// Place camera
 	FRotator controllerRotation = GetController()->GetControlRotation();

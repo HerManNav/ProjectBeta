@@ -30,6 +30,12 @@ private:
 	UPROPERTY(EditAnywhere, Category = Attributes)
 	float maxHealth;
 
+	UPROPERTY(EditAnywhere, Category = Movement)
+	float walkingSpeed = 125.f;
+
+	UPROPERTY(EditAnywhere, Category = Movement)
+	float runningSpeed = 300.f;
+
 public:
 
 	/*
@@ -43,5 +49,9 @@ public:
 	void takeDamage(float damage) { health = FMath::Clamp(health - damage, 0.f, maxHealth); }
 
 	float getHealthPercent() { return health / maxHealth; }
+
+	float getPatrollingSpeed() { return walkingSpeed; }
+
+	float getChasingSpeed() { return runningSpeed; }
 
 };

@@ -15,6 +15,7 @@ class UHealthBarComponent;
 class UNiagaraComponent;
 
 class AAIController;
+class UPawnSensingComponent;
 
 UCLASS()
 class SLASH_API AEnemy : public ACharacter, public IHitInterface
@@ -37,7 +38,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	/*
-	* Components
+	* Basic components
 	*/
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
@@ -45,6 +46,22 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UHealthBarComponent> healthBar;
+
+	UPROPERTY(VisibleDefaultsOnly)
+	TObjectPtr<UNiagaraComponent> deathPetals;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UPawnSensingComponent> sensingComponent;
+
+	/*
+	* States
+	*/
+
+	UPROPERTY(BlueprintReadWrite)
+	ELivingState livingState = ELivingState::ELS_Alive;
+
+	UPROPERTY(BlueprintReadOnly)
+	ECombatState combatState = ECombatState::ECS_Patrolling;
 
 	/*
 	* Montages
@@ -65,13 +82,6 @@ protected:
 	TObjectPtr<UParticleSystem> hitVFX;
 
 private:
-
-	/*
-	* States
-	*/
-
-	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = true))
-	ELivingState livingState = ELivingState::ELS_Alive;
 
 	/*
 	* Montages
@@ -96,10 +106,16 @@ private:
 	UPROPERTY()
 	TObjectPtr<AActor> combatTarget;
 
-	UPROPERTY(EditAnywhere)
-	float combatRadius = 2000.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	float combatRadius = 1000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	float attackRadius = 200.f;
 
 	void combat();
+
+	UFUNCTION()
+	void seenPawn(APawn* pawn);
 
 	/*
 	* Patrol
@@ -108,7 +124,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<AAIController> aiController;
 
-	UPROPERTY(EditInstanceOnly, Category = Patrol)
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = Patrol, meta = (AllowPrivateAccess = true))
 	TObjectPtr<AActor> currentPatrolTarget;
 
 	UPROPERTY(EditInstanceOnly, Category = Patrol)
@@ -117,10 +133,9 @@ private:
 	UPROPERTY(EditAnywhere)
 	float patrolRadius = 200.f;		// Don't set this below 150! Just to be sure (should be always > (105 + 15 + 1) ; 105 is the variation in AAIController::MoveTo method, +15 i the acceptanceRadius and +1 is just in case for precision errors)
 
-	int16 patrolPointIndex;
-
+	UFUNCTION(BlueprintCallable)
 	bool isActorWithinRadius(AActor* target, float radius);
-	
+
 	void patrol();
 	AActor* selectNextPatrolTarget();
 	void moveToTarget(const AActor* target, float acceptanceRadius = 15.f);
@@ -134,9 +149,6 @@ private:
 
 	UPROPERTY(VisibleDefaultsOnly)
 	TObjectPtr<UMaterialInterface> materialInstanceDynamic;
-
-	UPROPERTY(VisibleDefaultsOnly)
-	TObjectPtr<UNiagaraComponent> deathPetals;
 
 	UPROPERTY()								// Without this, this object would be considered for the GC, and then deleted in an uncontrolled way. So this prevents it and Unreal won't crash trying to access it after deleted (as it'd happen in fadeOut::decreaseDitheringOnMaterial method)
 	TObjectPtr<UMaterialInstanceDynamic> dynamicMaterial;
