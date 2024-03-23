@@ -117,6 +117,8 @@ private:
 	UFUNCTION()
 	void seenPawn(APawn* pawn);
 
+	void setFocalPointToActor(bool enable, AActor* actor = nullptr);
+
 	/*
 	* Patrol
 	*/
@@ -132,6 +134,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float patrolRadius = 200.f;		// Don't set this below 150! Just to be sure (should be always > (105 + 15 + 1) ; 105 is the variation in AAIController::MoveTo method, +15 i the acceptanceRadius and +1 is just in case for precision errors)
+
+	UFUNCTION(BlueprintCallable)
+	void showOrHideHealthBar();
 
 	UFUNCTION(BlueprintCallable)
 	bool isActorWithinRadius(AActor* target, float radius);

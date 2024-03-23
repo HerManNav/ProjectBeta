@@ -44,8 +44,11 @@ AEnemy::AEnemy()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
 	GetCharacterMovement()->MaxWalkSpeed = attributes->getPatrollingSpeed();
+	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
 }
 
 void AEnemy::BeginPlay()
@@ -55,7 +58,7 @@ void AEnemy::BeginPlay()
 	if (healthBar)
 	{
 		healthBar->setPercentage(1.f);
-		healthBar->SetHiddenInGame(true);
+		healthBar->SetVisibility(false);
 	}
 
 	// Death
@@ -125,8 +128,8 @@ void AEnemy::playMontage(UAnimMontage* montage, FName montageName)
 
 void AEnemy::getHit_Implementation(const FVector& hitPoint)
 {
-	if (healthBar && healthBar->bHiddenInGame)
-		healthBar->SetHiddenInGame(false);
+	if (healthBar)
+		healthBar->SetVisibility(true);
 
 	if (attributes && attributes->isAlive())
 	{
@@ -182,6 +185,22 @@ void AEnemy::fadeOut()
 	//GetWorldTimerManager().ClearTimer(timerHandler);		// Not needed since at the end of the lifespan this actor is destroyed? And so it is its timers.
 }
 
+void AEnemy::setFocalPointToActor(bool enable, AActor* actor = nullptr)
+{
+	if (enable)
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
+		if (actor) aiController->SetFocus(actor);
+	}
+	else
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+		GetCharacterMovement()->bUseControllerDesiredRotation = false;
+		aiController->ClearFocus(EAIFocusPriority::Gameplay);
+	}
+}
+
 float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	if (attributes && healthBar)
@@ -215,8 +234,16 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 			fadeOut();
 		}
 
-		combatTarget = EventInstigator->GetPawn();
+		combatState = ECombatState::ECS_Chasing;
+
+		GetCharacterMovement()->MaxWalkSpeed = attributes->getChasingSpeed();
+
 		currentPatrolTarget = nullptr;
+
+		combatTarget = EventInstigator->GetPawn();
+
+		setFocalPointToActor(combatTarget);
+		moveToTarget(combatTarget, attackRadius - 110.f);
 	}
 
 	return DamageAmount;
@@ -226,10 +253,19 @@ void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	showOrHideHealthBar();
+
 	if (combatState != ECombatState::ECS_Patrolling)	// Pawn seen!
 		combat();
 	else												// Pawn out of the combat range
 		patrol();
+}
+
+void AEnemy::showOrHideHealthBar()
+{
+	bool showHealthBar = isActorWithinRadius(combatTarget, combatRadius);
+	if (healthBar)
+		healthBar->SetVisibility(showHealthBar);
 }
 
 bool AEnemy::isActorWithinRadius(AActor* actor, float radius)
@@ -255,13 +291,11 @@ void AEnemy::seenPawn(APawn* pawn)
 {
 	if (combatState != ECombatState::ECS_Patrolling) return;
 
-	UE_LOG(LogTemp, Warning, TEXT("Pawn seen first time!"));
-	if (pawn->ActorHasTag(FName("SlashCharacter")))		// Casting is very expensive to be performed multiple times (ASlashCharacter * character = Cast<ASlashCharacter>(pawn))
+	if (pawn->ActorHasTag(FName("SlashCharacter")))		// Casting is very expensive to be performed multiple times (ASlashCharacter* character = Cast<ASlashCharacter>(pawn)), so we use tags instead to check to pawn type!
 	{
 		bool shouldChaseCharacter = isActorWithinRadius(pawn, combatRadius);
 		if (shouldChaseCharacter && combatState == ECombatState::ECS_Patrolling)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Pawn chasing first time!"));
 			combatState = ECombatState::ECS_Chasing;
 
 			GetCharacterMovement()->MaxWalkSpeed = attributes->getChasingSpeed();
@@ -276,8 +310,9 @@ void AEnemy::seenPawn(APawn* pawn)
 
 void AEnemy::combat()
 {
+	// This system of chasing/attacking/interest-loosing is designed as 2 concentric circles, defining attackRadius the smallast one, and combatRadius the biggest one.
 	bool isActorInRange = isActorWithinRadius(combatTarget, combatRadius);
-	if (!isActorInRange)																						// Should get back to patrol
+	if (!isActorInRange)																						// Outside the combatRadius -> should get back to patrol
 	{
 		combatState = ECombatState::ECS_Patrolling;
 
@@ -288,23 +323,21 @@ void AEnemy::combat()
 
 		GetCharacterMovement()->MaxWalkSpeed = attributes->getPatrollingSpeed();
 		moveToTarget(currentPatrolTarget);
-
-		UE_LOG(LogTemp, Warning, TEXT("Get back to patrol!"));
 	}
-	else if (!isActorWithinRadius(combatTarget, attackRadius) && combatState != ECombatState::ECS_Chasing)										// Should keep chasing
+	else if (!isActorWithinRadius(combatTarget, attackRadius) && combatState != ECombatState::ECS_Chasing)		// Inside combatRadius, outside attackRadius- > should keep chasing
 	{
 		combatState = ECombatState::ECS_Chasing;
+		
+		setFocalPointToActor(combatTarget, false);
 
 		GetCharacterMovement()->MaxWalkSpeed = attributes->getChasingSpeed();
-
 		moveToTarget(combatTarget, attackRadius - 110.f);
-
-		UE_LOG(LogTemp, Warning, TEXT("Keep chasing!"));
 	}
-	else if (isActorWithinRadius(combatTarget, attackRadius) && combatState != ECombatState::ECS_Attacking)		// Should attack
+	else if (isActorWithinRadius(combatTarget, attackRadius) && combatState != ECombatState::ECS_Attacking)		// [inside combatRadius and] Inside attackRadius -> should attack
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Attacking!"));
 		combatState = ECombatState::ECS_Attacking;
+
+		setFocalPointToActor(combatTarget);
 
 
 	}
