@@ -117,7 +117,8 @@ private:
 	UFUNCTION()
 	void seenPawn(APawn* pawn);
 
-	void setFocalPointToActor(bool enable, AActor* actor = nullptr);
+	void setFocalPointToActor(AActor* actor = nullptr);
+	void resetFocalPoint();
 
 	/*
 	* Patrol

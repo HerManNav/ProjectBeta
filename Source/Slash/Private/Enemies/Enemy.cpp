@@ -185,13 +185,13 @@ void AEnemy::fadeOut()
 	//GetWorldTimerManager().ClearTimer(timerHandler);		// Not needed since at the end of the lifespan this actor is destroyed? And so it is its timers.
 }
 
-void AEnemy::setFocalPointToActor(bool enable, AActor* actor = nullptr)
+void AEnemy::setFocalPointToActor(AActor* actor)
 {
-	if (enable)
+	if (actor)
 	{
 		GetCharacterMovement()->bOrientRotationToMovement = false;
 		GetCharacterMovement()->bUseControllerDesiredRotation = true;
-		if (actor) aiController->SetFocus(actor);
+		aiController->SetFocus(actor);
 	}
 	else
 	{
@@ -199,6 +199,11 @@ void AEnemy::setFocalPointToActor(bool enable, AActor* actor = nullptr)
 		GetCharacterMovement()->bUseControllerDesiredRotation = false;
 		aiController->ClearFocus(EAIFocusPriority::Gameplay);
 	}
+}
+
+void AEnemy::resetFocalPoint()
+{
+	setFocalPointToActor(nullptr);
 }
 
 float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -328,7 +333,7 @@ void AEnemy::combat()
 	{
 		combatState = ECombatState::ECS_Chasing;
 		
-		setFocalPointToActor(combatTarget, false);
+		resetFocalPoint();
 
 		GetCharacterMovement()->MaxWalkSpeed = attributes->getChasingSpeed();
 		moveToTarget(combatTarget, attackRadius - 110.f);
