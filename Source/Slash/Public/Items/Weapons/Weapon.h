@@ -23,7 +23,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Equip(USceneComponent* InParent, FName InSocketName, AActor* newOwner, APawn* newInstigator);
 
-	void AttachMeshToSocket(USceneComponent* InParent, const FName& InSocketName);
+	void AttachToComponentAndSocket(USceneComponent* InParent, const FName& InSocketName);
 	
 protected:
 	virtual void BeginPlay() override;

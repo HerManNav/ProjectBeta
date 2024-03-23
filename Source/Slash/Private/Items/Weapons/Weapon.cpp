@@ -32,12 +32,12 @@ void AWeapon::BeginPlay()
 	WeaponBox->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnBoxOverlap);
 }
 
-void AWeapon::Equip(USceneComponent* InParent, FName InSocketName, AActor* newOwner, APawn* newInstigator)
+void AWeapon::Equip(USceneComponent* parent, FName socketName, AActor* newOwner, APawn* newInstigator)
 {
 	SetOwner(newOwner);
 	SetInstigator(newInstigator);
 
-	AttachMeshToSocket(InParent, InSocketName);
+	AttachToComponentAndSocket(parent, socketName);
 
 	ItemState = EItemState::EIS_Equipped;
 
@@ -50,10 +50,10 @@ void AWeapon::Equip(USceneComponent* InParent, FName InSocketName, AActor* newOw
 	niagara->Deactivate();
 }
 
-void AWeapon::AttachMeshToSocket(USceneComponent* InParent, const FName& InSocketName)
+void AWeapon::AttachToComponentAndSocket(USceneComponent* component, const FName& socket)
 {
 	FAttachmentTransformRules TransformRules(EAttachmentRule::SnapToTarget, true);
-	ItemMesh->AttachToComponent(InParent, TransformRules, InSocketName);
+	GetRootComponent()->AttachToComponent(component, TransformRules, socket);
 }
 
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
