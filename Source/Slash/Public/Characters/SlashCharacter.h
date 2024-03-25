@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "BaseCharacter.h"
 #include "InputActionValue.h"
 #include "CharacterTypes.h"
 
@@ -18,12 +18,9 @@ class UInputAction;
 class UGroomComponent;
 
 class AItem;
-class AWeapon;
-
-class UAttributesComponent;
 
 UCLASS()
-class SLASH_API ASlashCharacter : public ACharacter
+class SLASH_API ASlashCharacter : public ABaseCharacter
 {
 	GENERATED_BODY()
 
@@ -36,6 +33,10 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	/*
+	* Input
+	*/
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputMappingContext> echoMappingContext;
@@ -66,7 +67,6 @@ protected:
 	void look(const FInputActionValue& value);
 
 	void equip();
-	void attack();
 
 	void toggleWalk();
 
@@ -76,21 +76,15 @@ protected:
 	bool bWalking;
 	void updateMaxGroundSpeed();
 
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<AWeapon> weapon;
-
 	/*
-	* Montage functions
+	* Attack
 	*/
 
-	bool canAttack();
-	void playAttackingMontage();
+	virtual void attack() override;
+	virtual bool canAttack() override;
 
-	UFUNCTION(BlueprintCallable)
-	void endAttackAnim();
-
-	UFUNCTION(BlueprintCallable)
-	void setWeaponCollision(ECollisionEnabled::Type collisionEnabled);
+	virtual void playAttackingMontage() override;
+	virtual void endAttack() override;
 
 private:
 
@@ -101,6 +95,9 @@ private:
 	ECharacterState state = ECharacterState::ECS_Unequipped;
 
 	EActionState actionState = EActionState::EAS_Unoccupied;
+
+	UPROPERTY(VisibleInstanceOnly)
+	TObjectPtr<AItem> overlappingItem;
 
 	/*
 	* Components
@@ -117,19 +114,6 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = Hair)
 	TObjectPtr<UGroomComponent> eyebrows;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
-	TObjectPtr<UAttributesComponent> attributes;
-
-	/*
-	* Other member variables
-	*/
-
-	UPROPERTY(VisibleInstanceOnly)
-	TObjectPtr<AItem> overlappingItem;
-
-	UPROPERTY(EditDefaultsOnly, Category = Montages)
-	TObjectPtr<UAnimMontage> attackMontage;
 
 public:
 

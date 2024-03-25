@@ -4,13 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Interfaces/HitInterface.h"
+#include "Characters/BaseCharacter.h"
 #include "EnemyTypes.h"
+
 #include "Enemy.generated.h"
 
-class USoundBase;
-class UParticleSystem;
-class UAttributesComponent;
 class UHealthBarComponent;
 class UNiagaraComponent;
 
@@ -18,7 +16,7 @@ class AAIController;
 class UPawnSensingComponent;
 
 UCLASS()
-class SLASH_API AEnemy : public ACharacter, public IHitInterface
+class SLASH_API AEnemy : public ABaseCharacter
 {
 	GENERATED_BODY()
 
@@ -27,7 +25,10 @@ public:
 	AEnemy();
 
 	virtual void Tick(float DeltaTime) override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	/*
+	* Combat
+	*/
 
 	virtual void getHit_Implementation(const FVector& hitPoint) override;
 
@@ -40,9 +41,6 @@ protected:
 	/*
 	* Basic components
 	*/
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<UAttributesComponent> attributes;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UHealthBarComponent> healthBar;
@@ -63,44 +61,10 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	ECombatState combatState = ECombatState::ECS_Patrolling;
 
-	/*
-	* Montages
-	*/
-
-	FName getHitDirection(const FVector& hitPoint);
-
-	void playMontage(UAnimMontage* montage, FName montageName);
-
-	/*
-	* SFXs and VFXs
-	*/
-
-	UPROPERTY(EditAnywhere, Category = Sound)
-	TObjectPtr<USoundBase> hitSound;
-
-	UPROPERTY(EditAnywhere, Category = Particles)
-	TObjectPtr<UParticleSystem> hitVFX;
-
 private:
 
 	/*
-	* Montages
-	*/
-
-	UPROPERTY(EditDefaultsOnly, Category = Montages)
-	TObjectPtr<UAnimMontage> hitMontage;
-
-	UPROPERTY(EditAnywhere, Category = Montages)
-	float frontBackAngle = 20.f;
-
-	UPROPERTY(EditDefaultsOnly, Category = Montages)
-	TObjectPtr<UAnimMontage> deathMontage;
-
-	UPROPERTY(EditAnywhere, Category = Montages, meta = (ClampMin = "-1", ClampMax = "2"))
-	int8 deathIndex = -1;
-
-	/*
-	* Combat
+	* Combat (AI)
 	*/
 
 	UPROPERTY()
@@ -121,7 +85,7 @@ private:
 	void resetFocalPoint();
 
 	/*
-	* Patrol
+	* Patrol (AI)
 	*/
 
 	UPROPERTY()
@@ -167,8 +131,8 @@ private:
 
 	float deathPetals_delay = 3.f;			// Time before start to play the deathPetals particles
 
-	void playDeathMontage();
-	void die();
+	virtual void playDeathMontage() override;
+	virtual void die() override;
 	void fadeOut();
 
 public:

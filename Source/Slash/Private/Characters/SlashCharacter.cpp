@@ -43,8 +43,6 @@ ASlashCharacter::ASlashCharacter()
 	eyebrows = CreateDefaultSubobject<UGroomComponent>(TEXT("eyebrows"));
 	eyebrows->SetupAttachment(GetMesh());
 	eyebrows->AttachmentName = FString("head");
-
-	attributes = CreateDefaultSubobject<UAttributesComponent>(TEXT("attributes"));
 }
 
 void ASlashCharacter::BeginPlay()
@@ -146,12 +144,6 @@ void ASlashCharacter::equip()
 	 }
 }
 
-bool ASlashCharacter::canAttack()
-{
-	return	state != ECharacterState::ECS_Unequipped &&
-			actionState == EActionState::EAS_Unoccupied;
-}
-
 void ASlashCharacter::attack()
 {
 	if (canAttack())
@@ -159,6 +151,17 @@ void ASlashCharacter::attack()
 		playAttackingMontage();
 		actionState = EActionState::EAS_Attacking;
 	}
+}
+
+bool ASlashCharacter::canAttack()
+{
+	return	state != ECharacterState::ECS_Unequipped &&
+		actionState == EActionState::EAS_Unoccupied;
+}
+
+void ASlashCharacter::endAttack()
+{
+	actionState = EActionState::EAS_Unoccupied;
 }
 
 void ASlashCharacter::playAttackingMontage()
@@ -183,20 +186,6 @@ void ASlashCharacter::playAttackingMontage()
 			break;
 		}
 		animInstance->Montage_JumpToSection(montageSection, attackMontage);
-	}
-}
-
-void ASlashCharacter::endAttackAnim()
-{
-	actionState = EActionState::EAS_Unoccupied;
-}
-
-void ASlashCharacter::setWeaponCollision(ECollisionEnabled::Type collisionEnabled)
-{
-	if (weapon)
-	{
-		weapon->setBoxCollision(collisionEnabled);
-		weapon->clearActorsToIgnore();
 	}
 }
 
