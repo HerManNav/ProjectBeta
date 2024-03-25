@@ -61,7 +61,7 @@ void AEnemy::BeginPlay()
 
 	// Death
 	if (materialInstanceDynamic)
-		dynamicMaterial = UMaterialInstanceDynamic::Create(materialInstanceDynamic, this);
+		ditheringMaterial = UMaterialInstanceDynamic::Create(materialInstanceDynamic, this);
 
 	if (deathPetals)
 		deathPetals->Deactivate();
@@ -149,20 +149,23 @@ void AEnemy::die()
 
 void AEnemy::fadeOut()
 {
-	float dithering_initial = dithering;
+	if (GetMesh()) GetMesh()->SetMaterial(0, ditheringMaterial);
+	if (ditheringMaterial) ditheringMaterial->SetScalarParameterValue("totalDitheringTime", dithering_totalTime);
+	
+	dithering_startTime = GetWorld()->GetTimeSeconds();
 
-	GetWorldTimerManager().SetTimer<AEnemy>(timerHandler_dithering, this, &AEnemy::decreaseDitheringOnMaterial, dithering_execRate, true, dithering_delay);
-	GetWorldTimerManager().SetTimer<AEnemy>(timerHandler_deathPetals, this, &AEnemy::activateDeathPetalsAnim, deathPetals_delay);
+	GetWorldTimerManager().SetTimer<AEnemy>(timerHandler_dithering, this, &AEnemy::decreaseDitheringOnMaterial, dithering_execRate, true, dithering_initialDelay);
+	GetWorldTimerManager().SetTimer<AEnemy>(timerHandler_deathPetals, this, &AEnemy::activateDeathPetalsAnim, deathPetals_initialDelay);
 
-	SetLifeSpan(dithering_delay + dithering_initial / dithering_fadeOutRate * dithering_execRate + dithering_extraTime);
+	SetLifeSpan(dithering_initialDelay + dithering_totalTime + dithering_extraTime);
 }
 
 void AEnemy::decreaseDitheringOnMaterial()
 {
-	if (dynamicMaterial)
+	if (ditheringMaterial)
 	{
-		dynamicMaterial->SetScalarParameterValue("dithering", dithering -= dithering_fadeOutRate);
-		if (GetMesh()) GetMesh()->SetMaterial(0, dynamicMaterial);
+		float ditheringCurrentTime = dithering_startTime + dithering_initialDelay;
+		ditheringMaterial->SetScalarParameterValue("elapsedTime", GetWorld()->GetTimeSeconds() - ditheringCurrentTime);
 	}
 }
 

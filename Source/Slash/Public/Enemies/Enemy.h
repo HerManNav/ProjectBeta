@@ -116,19 +116,19 @@ private:
 	* Death
 	*/
 
-	UPROPERTY(VisibleDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UMaterialInterface> materialInstanceDynamic;
 
 	UPROPERTY()								// Without this, this object would be considered for the GC, and then deleted in an uncontrolled way. So this prevents it and Unreal won't crash trying to access it after deleted (as it'd happen in fadeOut::decreaseDitheringOnMaterial method)
-	TObjectPtr<UMaterialInstanceDynamic> dynamicMaterial;
+	TObjectPtr<UMaterialInstanceDynamic> ditheringMaterial;
 
-	float dithering_delay = 5.f;			// Time before start to fade out
-	float dithering = 1.f;					// Current dithering percentage, which is updated every dithering_execRate till 0.f
-	float dithering_fadeOutRate = 0.01f;	// Value considered in every update
-	float dithering_execRate = 0.03;		// fadeOut() method is executed every dithering_execRate seconds
+	float dithering_startTime;				// Wall-clock time at which the timers for the fade out and deathPetals particles are set (e.g. second 10.f of the simulation)
+	float dithering_initialDelay = 5.f;		// Time before start to fade out
+	float dithering_totalTime = 3.f;		// Total time that takes to completa the fade out
+	float dithering_execRate = 3.f / 100.f; // fadeOut() method is executed every dithering_execRate seconds
 	float dithering_extraTime = 3.f;		// Time before destroying the enemy instance (extra time to let the Niagara effects finish)
 
-	float deathPetals_delay = 3.f;			// Time before start to play the deathPetals particles
+	float deathPetals_initialDelay = 3.f;	// Time before start to play the deathPetals particles
 
 	virtual ELivingState getDeathType(int8 deathIndex) override;
 
