@@ -24,11 +24,11 @@ protected:
 
 private:
 
-	UPROPERTY(EditAnywhere, Category = Attributes)
-	float health;
+	UPROPERTY(EditAnywhere, Category = Attributes, meta = (ClampMin = "0"))
+	float health = 100.f;
 
-	UPROPERTY(EditAnywhere, Category = Attributes)
-	float maxHealth;
+	UPROPERTY(EditAnywhere, Category = Attributes, meta = (ClampMin = "0"))
+	float maxHealth = 100.f;
 
 	UPROPERTY(EditAnywhere, Category = Movement)
 	float walkingSpeed = 125.f;

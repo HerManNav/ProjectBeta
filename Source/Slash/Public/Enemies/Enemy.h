@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Characters/BaseCharacter.h"
-#include "EnemyTypes.h"
 
 #include "Enemy.generated.h"
 
@@ -59,7 +58,7 @@ protected:
 	ELivingState livingState = ELivingState::ELS_Alive;
 
 	UPROPERTY(BlueprintReadOnly)
-	ECombatState combatState = ECombatState::ECS_Patrolling;
+	EEnemyState state = EEnemyState::EES_Patrolling;
 
 private:
 
@@ -131,9 +130,13 @@ private:
 
 	float deathPetals_delay = 3.f;			// Time before start to play the deathPetals particles
 
-	virtual void playDeathMontage() override;
+	virtual ELivingState getDeathType(int8 deathIndex) override;
+
 	virtual void die() override;
 	void fadeOut();
+
+	UPROPERTY(EditAnywhere)
+	int8 deathAnimationAfterDead_index = 1;	// This will trigger an animation for the enemy after die (e.g. 1 = "Death flying back" (see deathMontage) which is the most impressive one when enemy is on the floor)
 
 public:
 

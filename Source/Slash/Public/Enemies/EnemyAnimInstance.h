@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "EnemyTypes.h"
 #include "EnemyAnimInstance.generated.h"
 
 class AEnemy;

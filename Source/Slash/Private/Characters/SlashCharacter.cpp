@@ -168,24 +168,13 @@ void ASlashCharacter::playAttackingMontage()
 {
 	TObjectPtr<UAnimInstance> animInstance = GetMesh()->GetAnimInstance();
 
-	if (animInstance && attackMontage)
+	if (attackMontage)
 	{
-		animInstance->Montage_Play(attackMontage, 1.4f);
+		int8 selectedAttack_Index = attackIndex;
+		if (attackIndex == -1)
+			selectedAttack_Index = FMath::RandRange(0, attackMontage->GetNumSections() - 1);
 
-		FName montageSection = FName();
-		switch (FMath::RandRange(0, 1))
-		{
-		case (0):
-			montageSection = FName("Attack1");
-			break;
-		case (1):
-			montageSection = FName("Attack2");
-			break;
-		case (2):
-			montageSection = FName("Attack3");
-			break;
-		}
-		animInstance->Montage_JumpToSection(montageSection, attackMontage);
+		playMontage(attackMontage, attackMontage->GetSectionName(selectedAttack_Index));
 	}
 }
 

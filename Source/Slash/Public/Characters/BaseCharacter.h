@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/HitInterface.h"
+#include "CharacterTypes.h"
+
 #include "BaseCharacter.generated.h"
 
 class UAnimMontage;
@@ -23,12 +25,6 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
-	/*
-	* Combat
-	*/
-
-	virtual void getHit_Implementation(const FVector& hitPoint) override;
-
 protected:
 
 	virtual void BeginPlay() override;
@@ -37,19 +33,22 @@ protected:
 	* Attack
 	*/
 
-	virtual void attack();
+	virtual void attack() {}
 
-	virtual bool canAttack();
+	virtual bool canAttack() { return false; }
 
-	virtual void playAttackingMontage();
+	virtual void playAttackingMontage() {}
 
 	UFUNCTION(BlueprintCallable)
-	virtual void endAttack();
+	virtual void endAttack() {}
 
 	UFUNCTION(BlueprintCallable)
 	virtual void setWeaponCollision(ECollisionEnabled::Type collisionEnabled);
 
 	virtual FName getHitDirection(const FVector& hitPoint);
+
+	UPROPERTY(EditAnywhere, Category = "Indices|Attack")
+	int8 attackIndex = -1;								// Use to test specific attack animations (if -1, it is not used and animations will be randomly selected, as designed)
 
 	/*
 	* SFXs and VFXs
@@ -76,19 +75,20 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
 	TObjectPtr<UAnimMontage> deathMontage;
 
-	UPROPERTY(EditAnywhere, Category = Montages)
-	float frontBackAngle = 20.f;						// Base angle to calculate hit directions
-
-	UPROPERTY(EditAnywhere, Category = Montages, meta = (ClampMin = "-1", ClampMax = "2"))
-	int8 deathIndex = -1;
-
 	/*
 	* Death
 	*/
 
-	virtual void playDeathMontage();
+	virtual int8 playDeathMontage();
+	virtual ELivingState getDeathType(int8 inDeathIndex) { return ELivingState::ELS_Dead1; }
 
-	virtual void die();
+	virtual void die() {}
+
+	UPROPERTY(EditAnywhere, Category = Montages)
+	float frontBackAngle = 20.f;						// Base angle to calculate hit directions
+
+	UPROPERTY(EditAnywhere, Category = "Indices|Montages")
+	int8 deathIndex = -1;								// Use to test specific death animations (if -1, it is not used and animations will be randomly selected, as designed)
 
 	/*
 	* State

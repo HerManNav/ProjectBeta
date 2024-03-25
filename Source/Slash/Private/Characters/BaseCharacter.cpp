@@ -15,43 +15,32 @@ ABaseCharacter::ABaseCharacter()
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	if (!attackMontage || 
+		(- 1 > attackIndex || attackIndex > (attackMontage->GetNumSections() - 1)))
+	{
+		attackIndex = -1;
+
+		UE_LOG(LogTemp, Warning, TEXT("attackMontage not set or attackIndex out of attackMontage bounds. attackIndex reset to -1."));
+	}
+
+	if (!deathMontage || 
+		(- 1 > deathIndex || deathIndex > (deathMontage->GetNumSections() - 1)))
+	{
+		deathIndex = -1;
+
+		UE_LOG(LogTemp, Warning, TEXT("deathMontage not set or deathIndex out of deathMontage bounds. deathMontage reset to -1."));
+	}
 }
 
 void ABaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-}
-
-/*
-* Combat
-*/
-
-void ABaseCharacter::getHit_Implementation(const FVector& hitPoint)
-{
 }
 
 /*
 * Attack
 */
-
-void ABaseCharacter::attack()
-{
-}
-
-bool ABaseCharacter::canAttack()
-{
-	return false;
-}
-
-void ABaseCharacter::playAttackingMontage()
-{
-}
-
-void ABaseCharacter::endAttack()
-{
-}
 
 void ABaseCharacter::setWeaponCollision(ECollisionEnabled::Type collisionEnabled)
 {
@@ -110,11 +99,17 @@ void ABaseCharacter::playMontage(UAnimMontage* montage, FName montageName)
 	}
 }
 
-void ABaseCharacter::playDeathMontage()
+int8 ABaseCharacter::playDeathMontage()
 {
-}
+	if (deathMontage)
+	{
+		if (deathIndex == -1)
+			deathIndex = FMath::RandRange(0, deathMontage->GetNumSections() - 1);
 
-void ABaseCharacter::die()
-{
+		playMontage(deathMontage, deathMontage->GetSectionName(deathIndex));
+
+		return deathIndex;
+	}
+	return -1;
 }
 
