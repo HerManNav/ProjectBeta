@@ -149,32 +149,27 @@ void AEnemy::die()
 
 void AEnemy::fadeOut()
 {
-	// BUG: this method crashes sometimes. Ideas: the lambda functions might need to get extracted in order to be class methods, just like the handlers themselves (using local variables is not a good idea for timers?)
 	float dithering_initial = dithering;
 
-	auto decreaseDitheringOnMaterial = [&]()
-		{
-			if (dynamicMaterial)
-			{
-				dynamicMaterial->SetScalarParameterValue("dithering", dithering -= dithering_fadeOutRate);
-				if (GetMesh()) GetMesh()->SetMaterial(0, dynamicMaterial);
-			}
-		};
-
-	auto activateDeathPetals = [&]()
-		{
-			if (deathPetals)
-				deathPetals->Activate(true);
-		};
-
-	FTimerHandle timerHandler_dithering;
-	GetWorldTimerManager().SetTimer(timerHandler_dithering, decreaseDitheringOnMaterial, dithering_execRate, true, dithering_delay);
-
-	FTimerHandle timerHandler_deathPetals;
-	GetWorldTimerManager().SetTimer(timerHandler_deathPetals, activateDeathPetals, deathPetals_delay, false);
+	GetWorldTimerManager().SetTimer<AEnemy>(timerHandler_dithering, this, &AEnemy::decreaseDitheringOnMaterial, dithering_execRate, true, dithering_delay);
+	GetWorldTimerManager().SetTimer<AEnemy>(timerHandler_deathPetals, this, &AEnemy::activateDeathPetalsAnim, deathPetals_delay);
 
 	SetLifeSpan(dithering_delay + dithering_initial / dithering_fadeOutRate * dithering_execRate + dithering_extraTime);
-	//GetWorldTimerManager().ClearTimer(timerHandler);		// Not needed since at the end of the lifespan this actor is destroyed? And so it is its timers.
+}
+
+void AEnemy::decreaseDitheringOnMaterial()
+{
+	if (dynamicMaterial)
+	{
+		dynamicMaterial->SetScalarParameterValue("dithering", dithering -= dithering_fadeOutRate);
+		if (GetMesh()) GetMesh()->SetMaterial(0, dynamicMaterial);
+	}
+}
+
+void AEnemy::activateDeathPetalsAnim()
+{
+	if (deathPetals)
+		deathPetals->Activate(true);
 }
 
 /*

@@ -133,10 +133,20 @@ private:
 	virtual ELivingState getDeathType(int8 deathIndex) override;
 
 	virtual void die() override;
-	void fadeOut();
 
 	UPROPERTY(EditAnywhere)
 	int8 deathAnimationAfterDead_index = 1;	// This will trigger an animation for the enemy after die (e.g. 1 = "Death flying back" (see deathMontage) which is the most impressive one when enemy is on the floor)
+
+	/**
+	* Death fadeout
+	*/
+
+	void fadeOut();
+	void decreaseDitheringOnMaterial();
+	void activateDeathPetalsAnim();
+
+	FTimerHandle timerHandler_dithering;
+	FTimerHandle timerHandler_deathPetals;
 
 public:
 
