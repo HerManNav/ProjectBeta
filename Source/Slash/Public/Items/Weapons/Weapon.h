@@ -22,14 +22,14 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void Equip(USceneComponent* InParent, FName InSocketName, AActor* newOwner, APawn* newInstigator);
-
-	void AttachToComponentAndSocket(USceneComponent* InParent, const FName& InSocketName);
 	
 protected:
 	virtual void BeginPlay() override;
 
 	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 	virtual void OnSphereOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
+
+	void AttachToComponentAndSocket(USceneComponent* InParent, const FName& InSocketName);
 
 	UFUNCTION()
 	void OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

@@ -12,6 +12,7 @@
 #include "Math/UnrealMathUtility.h"
 #include "Components/AttributesComponent.h"
 #include "HUD/HealthBarComponent.h"
+#include "Items/Weapons/Weapon.h"
 
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
@@ -59,13 +60,6 @@ void AEnemy::BeginPlay()
 		healthBar->SetVisibility(false);
 	}
 
-	// Death
-	if (materialInstanceDynamic)
-		ditheringMaterial = UMaterialInstanceDynamic::Create(materialInstanceDynamic, this);
-
-	if (deathPetals)
-		deathPetals->Deactivate();
-
 	// AI
 	aiController = Cast<AAIController>(GetController());
 	if (currentPatrolTarget)
@@ -73,6 +67,27 @@ void AEnemy::BeginPlay()
 
 	if (sensingComponent)
 		sensingComponent->OnSeePawn.AddDynamic(this, &AEnemy::seenPawn);
+
+	// Death
+	if (materialInstanceDynamic)
+		ditheringMaterial = UMaterialInstanceDynamic::Create(materialInstanceDynamic, this);
+
+	if (deathPetals)
+		deathPetals->Deactivate();
+
+	// Weapon
+	if (GetWorld() && weaponClass)
+	{
+		weapon = GetWorld()->SpawnActor<AWeapon>(weaponClass);
+		if (weapon && GetMesh())
+			weapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
+	}
+}
+
+void AEnemy::Destroyed()
+{
+	if (weapon)
+		weapon->Destroy();
 }
 
 /*

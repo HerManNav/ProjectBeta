@@ -16,6 +16,7 @@ AItem::AItem()
 
 	ItemMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ItemMeshComponent"));
 	ItemMesh->SetupAttachment(GetRootComponent());
+	ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	niagara = CreateDefaultSubobject<UNiagaraComponent>(TEXT("niagara"));
 	niagara->SetupAttachment(Sphere);

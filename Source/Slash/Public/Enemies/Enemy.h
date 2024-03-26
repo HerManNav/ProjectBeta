@@ -37,6 +37,8 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	virtual void Destroyed() override;
+
 	/*
 	* Basic components
 	*/
@@ -50,8 +52,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UPawnSensingComponent> sensingComponent;
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AWeapon> weaponClass;
+
 	/*
-	* States
+	* State
 	*/
 
 	UPROPERTY(BlueprintReadWrite)
@@ -124,7 +129,7 @@ private:
 
 	float dithering_startTime;				// Wall-clock time at which the timers for the fade out and deathPetals particles are set (e.g. second 10.f of the simulation)
 	float dithering_initialDelay = 5.f;		// Time before start to fade out
-	float dithering_totalTime = 3.f;		// Total time that takes to completa the fade out
+	float dithering_totalTime = 3.f;		// Total time that takes to complete the fade out
 	float dithering_execRate = 3.f / 100.f; // fadeOut() method is executed every dithering_execRate seconds
 	float dithering_extraTime = 3.f;		// Time before destroying the enemy instance (extra time to let the Niagara effects finish)
 
