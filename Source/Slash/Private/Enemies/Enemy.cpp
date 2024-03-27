@@ -333,7 +333,7 @@ void AEnemy::combat()
 
 		setFocalPointToActor(combatTarget);
 
-
+		attack();
 	}
 }
 
@@ -404,5 +404,11 @@ void AEnemy::moveToTarget(const AActor* target, float acceptanceRadius)
 void AEnemy::finishedTimer()
 {
 	moveToTarget(currentPatrolTarget);
+}
+
+bool AEnemy::canAttack()
+{
+	UE_LOG(LogTemp, Warning, TEXT("enemy attacking!"))
+	return actionState == EActionState::EAS_Unoccupied;
 }
 

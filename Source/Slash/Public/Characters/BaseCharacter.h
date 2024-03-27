@@ -30,17 +30,23 @@ protected:
 	virtual void BeginPlay() override;
 
 	/*
+	* State
+	*/
+
+	EActionState actionState = EActionState::EAS_Unoccupied;
+
+	/*
 	* Attack
 	*/
 
-	virtual void attack() {}
+	virtual void attack();
+	
+	UFUNCTION(BlueprintCallable)
+	virtual void attackEnd();
 
 	virtual bool canAttack() { return false; }
 
-	virtual void playAttackingMontage() {}
-
-	UFUNCTION(BlueprintCallable)
-	virtual void endAttack() {}
+	virtual void playAttackingMontage();
 
 	UFUNCTION(BlueprintCallable)
 	virtual void setWeaponCollision(ECollisionEnabled::Type collisionEnabled);

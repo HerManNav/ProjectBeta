@@ -63,7 +63,7 @@ protected:
 	* Callbacks for input
 	*/
 	void move(const FInputActionValue& value);
-	void move_stop(const FInputActionValue& value);
+	void moveEnd(const FInputActionValue& value);
 	void look(const FInputActionValue& value);
 
 	void equip();
@@ -80,21 +80,15 @@ protected:
 	* Attack
 	*/
 
-	virtual void attack() override;
 	virtual bool canAttack() override;
-
-	virtual void playAttackingMontage() override;
-	virtual void endAttack() override;
 
 private:
 
 	/*
-	* States
+	* State
 	*/
 
 	ECharacterState state = ECharacterState::ECS_Unequipped;
-
-	EActionState actionState = EActionState::EAS_Unoccupied;
 
 	UPROPERTY(VisibleInstanceOnly)
 	TObjectPtr<AItem> overlappingItem;

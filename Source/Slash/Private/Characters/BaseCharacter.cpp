@@ -42,6 +42,34 @@ void ABaseCharacter::Tick(float DeltaTime)
 * Attack
 */
 
+void ABaseCharacter::attack()
+{
+	if (canAttack())
+	{
+		playAttackingMontage();
+		actionState = EActionState::EAS_Attacking;
+	}
+}
+
+void ABaseCharacter::attackEnd()
+{
+	actionState = EActionState::EAS_Unoccupied;
+}
+
+void ABaseCharacter::playAttackingMontage()
+{
+	TObjectPtr<UAnimInstance> animInstance = GetMesh()->GetAnimInstance();
+
+	if (attackMontage)
+	{
+		int8 selectedAttack_Index = attackIndex;
+		if (attackIndex == -1)
+			selectedAttack_Index = FMath::RandRange(0, attackMontage->GetNumSections() - 1);
+
+		playMontage(attackMontage, attackMontage->GetSectionName(selectedAttack_Index));
+	}
+}
+
 void ABaseCharacter::setWeaponCollision(ECollisionEnabled::Type collisionEnabled)
 {
 	if (weapon)

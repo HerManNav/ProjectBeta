@@ -118,6 +118,12 @@ private:
 	void finishedTimer();
 
 	/*
+	* Attack
+	*/
+
+	virtual bool canAttack() override;
+
+	/*
 	* Death
 	*/
 

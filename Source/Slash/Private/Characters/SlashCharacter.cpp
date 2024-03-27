@@ -79,7 +79,7 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	if (UEnhancedInputComponent* enhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		enhancedInputComponent->BindAction(moveAction, ETriggerEvent::Triggered, this, &ASlashCharacter::move);
-		enhancedInputComponent->BindAction(moveAction, ETriggerEvent::Completed, this, &ASlashCharacter::move_stop);
+		enhancedInputComponent->BindAction(moveAction, ETriggerEvent::Completed, this, &ASlashCharacter::moveEnd);
 		enhancedInputComponent->BindAction(jumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 
 		enhancedInputComponent->BindAction(toggleWalkAction, ETriggerEvent::Completed, this, &ASlashCharacter::toggleWalk);
@@ -114,7 +114,7 @@ void ASlashCharacter::move(const FInputActionValue& value)
 	}
 }
 
-void ASlashCharacter::move_stop(const FInputActionValue& value)
+void ASlashCharacter::moveEnd(const FInputActionValue& value)
 {
 	// ToDo: intended to use for adding some sliding after releasing the forward key ('w'), while playing the jog_to_idle animation in the abp
 }
@@ -144,38 +144,10 @@ void ASlashCharacter::equip()
 	 }
 }
 
-void ASlashCharacter::attack()
-{
-	if (canAttack())
-	{
-		playAttackingMontage();
-		actionState = EActionState::EAS_Attacking;
-	}
-}
-
 bool ASlashCharacter::canAttack()
 {
 	return	state != ECharacterState::ECS_Unequipped &&
-		actionState == EActionState::EAS_Unoccupied;
-}
-
-void ASlashCharacter::endAttack()
-{
-	actionState = EActionState::EAS_Unoccupied;
-}
-
-void ASlashCharacter::playAttackingMontage()
-{
-	TObjectPtr<UAnimInstance> animInstance = GetMesh()->GetAnimInstance();
-
-	if (attackMontage)
-	{
-		int8 selectedAttack_Index = attackIndex;
-		if (attackIndex == -1)
-			selectedAttack_Index = FMath::RandRange(0, attackMontage->GetNumSections() - 1);
-
-		playMontage(attackMontage, attackMontage->GetSectionName(selectedAttack_Index));
-	}
+			actionState == EActionState::EAS_Unoccupied;
 }
 
 void ASlashCharacter::toggleWalk()
