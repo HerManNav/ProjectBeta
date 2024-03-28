@@ -16,7 +16,7 @@ void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (!attackMontage || 
+	/*if (!attackMontage || 
 		(- 1 > attackIndex || attackIndex > (attackMontage->GetNumSections() - 1)))
 	{
 		attackIndex = -1;
@@ -30,7 +30,7 @@ void ABaseCharacter::BeginPlay()
 		deathIndex = -1;
 
 		UE_LOG(LogTemp, Warning, TEXT("deathMontage not set or deathIndex out of deathMontage bounds. deathMontage reset to -1."));
-	}
+	}*/
 }
 
 void ABaseCharacter::Tick(float DeltaTime)
@@ -42,9 +42,9 @@ void ABaseCharacter::Tick(float DeltaTime)
 * Attack
 */
 
-void ABaseCharacter::attack()
+void ABaseCharacter::Attack()
 {
-	if (canAttack())
+	if (CanAttack())
 	{
 		playAttackingMontage();
 		actionState = EActionState::EAS_Attacking;

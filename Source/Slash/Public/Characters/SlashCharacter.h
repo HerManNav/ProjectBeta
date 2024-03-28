@@ -80,7 +80,7 @@ protected:
 	* Attack
 	*/
 
-	virtual bool canAttack() override;
+	virtual bool CanAttack() override;
 
 private:
 

@@ -86,7 +86,7 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 		enhancedInputComponent->BindAction(lookAction, ETriggerEvent::Triggered, this, &ASlashCharacter::look);
 		enhancedInputComponent->BindAction(equipAction, ETriggerEvent::Completed, this, &ASlashCharacter::equip);
-		enhancedInputComponent->BindAction(attackAction, ETriggerEvent::Completed, this, &ASlashCharacter::attack);
+		enhancedInputComponent->BindAction(attackAction, ETriggerEvent::Completed, this, &ASlashCharacter::Attack);
 	}
 }
 
@@ -144,7 +144,7 @@ void ASlashCharacter::equip()
 	 }
 }
 
-bool ASlashCharacter::canAttack()
+bool ASlashCharacter::CanAttack()
 {
 	return	state != ECharacterState::ECS_Unequipped &&
 			actionState == EActionState::EAS_Unoccupied;

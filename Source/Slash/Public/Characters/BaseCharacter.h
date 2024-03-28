@@ -39,12 +39,12 @@ protected:
 	* Attack
 	*/
 
-	virtual void attack();
+	virtual void Attack();
 	
 	UFUNCTION(BlueprintCallable)
 	virtual void attackEnd();
 
-	virtual bool canAttack() { return false; }
+	virtual bool CanAttack() { return false; }
 
 	virtual void playAttackingMontage();
 
@@ -86,9 +86,9 @@ protected:
 	*/
 
 	virtual int8 playDeathMontage();
-	virtual ELivingState getDeathType(int8 inDeathIndex) { return ELivingState::ELS_Dead1; }
+	virtual EDeathPose GetDeathPose(int8 inDeathIndex) { return EDeathPose::EDP_Dead1; }
 
-	virtual void die() {}
+	virtual void Die() {}
 
 	UPROPERTY(EditAnywhere, Category = Montages)
 	float frontBackAngle = 20.f;						// Base angle to calculate hit directions
