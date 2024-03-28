@@ -39,14 +39,14 @@ protected:
 	* Attack
 	*/
 
-	virtual void Attack();
+	virtual void Attack() {};
 	
 	UFUNCTION(BlueprintCallable)
-	virtual void attackEnd();
+	virtual void AttackEnd() {}
 
 	virtual bool CanAttack() { return false; }
 
-	virtual void playAttackingMontage();
+	virtual void PlayAttackingMontage();
 
 	UFUNCTION(BlueprintCallable)
 	virtual void setWeaponCollision(ECollisionEnabled::Type collisionEnabled);

@@ -114,6 +114,8 @@ void AEnemy::getHit_Implementation(const FVector& hitPoint)
 {
 	if (IsAlive())
 	{
+		if (IsEngaged()) AttackEnd();
+
 		ShowHealthBar();
 		PlayHitAnimationBasedOnHitPoint(hitPoint);
 	}
@@ -237,10 +239,11 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 	
 	if (IsAlive() && !IsAwareOfCharacter())
 	{
-		SetCombatTarget(EventInstigator->GetPawn());
-		SetFocalPointToActor(combatTarget);
+		//SetFocalPointToActor(combatTarget);
 
-		Chase();
+		ClearPatrolTimer();
+		SetCombatTarget(EventInstigator->GetPawn());
+		ChaseCurrentTarget();
 	}
 
 	return DamageAmount;
@@ -277,6 +280,8 @@ void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (IsDead()) return;
+
 	if (!IsPatrolling())		// Pawn seen!
 		CheckCombat();
 	else						// Pawn out of the combat range
@@ -301,7 +306,7 @@ void AEnemy::PawnSeen(APawn* pawn)
 			ClearPatrolTimer();
 			SetCombatTarget(pawn);
 
-			Chase();
+			ChaseCurrentTarget();
 		}
 	}
 }
@@ -330,21 +335,21 @@ void AEnemy::CheckCombat()
 {
 	// This system of chasing/attacking/interest-loosing is designed as 2 concentric circles, defining attackRadius the smallast one, and combatRadius the biggest one.
 
-	if (IsCharacterOutOfRange())
+	if (IsCharacterOutOfRange() && !IsEngaged())
 	{
 		ClearAttackTimer();
 		HideHealthBar();
 
 		LoseInterest();
 	}
-	else if (IsCharacterOutOfAttackRange() && !IsChasing())
+	else if (ShouldChaseCurrentTarget())
 	{
 		ClearAttackTimer();
 		ResetFocalPoint();
 
-		Chase();
+		ChaseCurrentTarget();
 	}
-	else if (IsCharacterInsideAttackRange() && !IsAttacking())
+	else if (CanAttack())
 	{
 		ClearAttackTimer();
 		SetFocalPointToActor(combatTarget);
@@ -376,13 +381,14 @@ void AEnemy::ClearAttackTimer()
 void AEnemy::LoseInterest()
 {
 	combatTarget = nullptr;
+	ResetFocalPoint();
 
 	EnemyState = EEnemyState::EES_Patrolling;
 	GetCharacterMovement()->MaxWalkSpeed = attributes->getPatrollingSpeed();
 	moveToTarget(currentPatrolTarget);
 }
 
-void AEnemy::Chase()
+void AEnemy::ChaseCurrentTarget()
 {
 	EnemyState = EEnemyState::EES_Chasing;
 	GetCharacterMovement()->MaxWalkSpeed = attributes->getChasingSpeed();
@@ -401,9 +407,16 @@ void AEnemy::Attack()
 {
 	Super::Attack();
 
-	EnemyState = EEnemyState::EES_Attacking;
+	EnemyState = EEnemyState::EES_Engaged;
+	PlayAttackingMontage();
+	ResetFocalPoint();
 }
 
+void AEnemy::AttackEnd()
+{
+	EnemyState = EEnemyState::EES_NoState;
+	CheckCombat();
+}
 
 /*
 * Patrol: main logic
@@ -531,9 +544,14 @@ void AEnemy::MoveToPatrolTarget()
 	moveToTarget(currentPatrolTarget);
 }
 
+bool AEnemy::ShouldChaseCurrentTarget()
+{
+	return IsCharacterOutOfAttackRange() && !IsChasing() && !IsEngaged();
+}
+
 bool AEnemy::CanAttack()
 {
-	return actionState == EActionState::EAS_Unoccupied;
+	return IsCharacterInsideAttackRange() && !IsDead() && !IsAttacking() && !IsEngaged();
 }
 
 bool AEnemy::IsDead()
@@ -559,6 +577,11 @@ bool AEnemy::IsChasing()
 bool AEnemy::IsAttacking()
 {
 	return EnemyState == EEnemyState::EES_Attacking;
+}
+
+bool AEnemy::IsEngaged()
+{
+	return EnemyState == EEnemyState::EES_Engaged;
 }
 
 void AEnemy::ShowHealthBar()

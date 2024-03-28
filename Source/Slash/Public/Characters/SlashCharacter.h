@@ -82,6 +82,10 @@ protected:
 
 	virtual bool CanAttack() override;
 
+	virtual void Attack() override;
+
+	virtual void AttackEnd() override;
+
 private:
 
 	/*

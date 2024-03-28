@@ -119,12 +119,14 @@ private:
 	*/
 
 	virtual bool CanAttack() override;
+	virtual void Attack() override;
+	virtual void AttackEnd() override;
 
 	UPROPERTY(EditAnywhere, Category = "Attack|Timers")
-	float MinAttackWait = 0.5f;
+	float MinAttackWait = 0.8f;
 
 	UPROPERTY(EditAnywhere, Category = "Attack|Timers")
-	float MaxAttackWait = 1.f;
+	float MaxAttackWait = 1.2f;
 
 	FTimerHandle AttackTimer;
 
@@ -172,6 +174,7 @@ private:
 	bool IsPatrolling();
 	bool IsChasing();
 	bool IsAttacking();
+	bool IsEngaged();
 	bool IsCharacterOutOfRange();
 	bool IsCharacterOutOfAttackRange();
 	bool IsCharacterInsideAttackRange();
@@ -183,8 +186,8 @@ private:
 	bool IsCharacterInsideCombatRange(APawn* pawn);
 
 	void LoseInterest();
-	void Chase();
-	virtual void Attack() override;
+	bool ShouldChaseCurrentTarget();
+	void ChaseCurrentTarget();
 	void SetAttackTimer();
 	void ClearAttackTimer();
 	bool CanMoveToTarget(const AActor* target);

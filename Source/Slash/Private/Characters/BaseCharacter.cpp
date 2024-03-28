@@ -42,21 +42,7 @@ void ABaseCharacter::Tick(float DeltaTime)
 * Attack
 */
 
-void ABaseCharacter::Attack()
-{
-	if (CanAttack())
-	{
-		playAttackingMontage();
-		actionState = EActionState::EAS_Attacking;
-	}
-}
-
-void ABaseCharacter::attackEnd()
-{
-	actionState = EActionState::EAS_Unoccupied;
-}
-
-void ABaseCharacter::playAttackingMontage()
+void ABaseCharacter::PlayAttackingMontage()
 {
 	TObjectPtr<UAnimInstance> animInstance = GetMesh()->GetAnimInstance();
 

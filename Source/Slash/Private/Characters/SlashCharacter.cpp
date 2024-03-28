@@ -150,6 +150,22 @@ bool ASlashCharacter::CanAttack()
 			actionState == EActionState::EAS_Unoccupied;
 }
 
+void ASlashCharacter::Attack()
+{
+	Super::Attack();
+
+	if (CanAttack())
+	{
+		PlayAttackingMontage();
+		actionState = EActionState::EAS_Attacking;
+	}
+}
+
+void ASlashCharacter::AttackEnd()
+{
+	actionState = EActionState::EAS_Unoccupied;
+}
+
 void ASlashCharacter::toggleWalk()
 {
 	bWalking = !bWalking;
