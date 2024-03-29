@@ -60,7 +60,7 @@ protected:
 	*/
 
 	UPROPERTY(BlueprintReadOnly)
-	EDeathPose DeathPose;
+	TEnumAsByte<EDeathPose> DeathPose;
 
 	UPROPERTY(BlueprintReadOnly)
 	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
@@ -223,6 +223,6 @@ private:
 	/* Death */
 	void StopAIController();
 	void DisableCollisionsForPawn();
-	void PlayDeathAnimation();
+	virtual int16 PlayDeathMontage() override;
 	virtual EDeathPose GetDeathPose(int8 inDeathIndex) override;
 };

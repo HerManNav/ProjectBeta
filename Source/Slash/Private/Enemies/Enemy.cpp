@@ -128,7 +128,7 @@ void AEnemy::getHit_Implementation(const FVector& hitPoint)
 void AEnemy::PlayHitAnimationBasedOnHitPoint(const FVector& hitPoint)
 {
 	FName directionName = getHitDirection(hitPoint);
-	playMontage(hitMontage, directionName);
+	PlayMontage(hitMontage, directionName);
 }
 
 void AEnemy::PlayHitSoundAtLocation(const FVector& location)
@@ -166,7 +166,7 @@ void AEnemy::Die()
 	else if (IsDead())
 		deathIndex = deathAnimationAfterDead_index;
 
-	PlayDeathAnimation();
+	PlayDeathMontage();
 }
 
 void AEnemy::StopAIController()
@@ -184,11 +184,16 @@ void AEnemy::DisableCollisionsForPawn()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 }
 
-void AEnemy::PlayDeathAnimation()
+int16 AEnemy::PlayDeathMontage()
 {
-	int8 playedDeath_Index = playDeathMontage();
-	DeathPose = GetDeathPose(playedDeath_Index);
+	int16 PlayedDeathIndex = Super::PlayDeathMontage();
+	TEnumAsByte<EDeathPose> PlayedDeathPose(PlayedDeathIndex);
+	if (PlayedDeathPose < EDeathPose::EDP_MAX)
+		DeathPose = PlayedDeathPose;
+
+	return PlayedDeathIndex;
 }
+
 
 EDeathPose AEnemy::GetDeathPose(int8 inDeathIndex)
 {
@@ -288,12 +293,12 @@ void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (IsTerminal()) return;
+	if (IsDying()) return;
 
-	if (!IsPatrolling())		// Pawn seen!
-		CheckCombat();
-	else						// Pawn out of the combat range
+	if (IsPatrolling())
 		CheckPatrol();
+	else
+		CheckCombat();
 }
 
 
@@ -392,6 +397,11 @@ void AEnemy::LoseInterest()
 	EnemyState = EEnemyState::EES_Patrolling;
 	GetCharacterMovement()->MaxWalkSpeed = attributes->getPatrollingSpeed();
 	moveToTarget(currentPatrolTarget);
+}
+
+bool AEnemy::ShouldChaseCurrentTarget()
+{
+	return IsCharacterOutOfAttackRange() && !IsChasing() && !IsEngaged();
 }
 
 void AEnemy::ChaseCurrentTarget()
@@ -546,11 +556,6 @@ bool AEnemy::CanMoveToTarget(const AActor* target)
 void AEnemy::MoveToPatrolTarget()
 {
 	moveToTarget(currentPatrolTarget);
-}
-
-bool AEnemy::ShouldChaseCurrentTarget()
-{
-	return IsCharacterOutOfAttackRange() && !IsChasing() && !IsEngaged();
 }
 
 bool AEnemy::CanAttack()

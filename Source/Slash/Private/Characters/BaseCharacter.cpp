@@ -16,21 +16,10 @@ void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	/*if (!attackMontage || 
-		(- 1 > attackIndex || attackIndex > (attackMontage->GetNumSections() - 1)))
-	{
-		attackIndex = -1;
-
-		UE_LOG(LogTemp, Warning, TEXT("attackMontage not set or attackIndex out of attackMontage bounds. attackIndex reset to -1."));
-	}
-
-	if (!deathMontage || 
-		(- 1 > deathIndex || deathIndex > (deathMontage->GetNumSections() - 1)))
-	{
-		deathIndex = -1;
-
-		UE_LOG(LogTemp, Warning, TEXT("deathMontage not set or deathIndex out of deathMontage bounds. deathMontage reset to -1."));
-	}*/
+	if (AttackMontageSectionNames.Num() <= 0)
+		UE_LOG(LogTemp, Warning, TEXT("No montage sections specified for Attack montage. No animation will be played."));
+	if (DeathMontageSectionNames.Num() <= 0)
+		UE_LOG(LogTemp, Warning, TEXT("No montage sections specified for Death montage. No animation will be played."));
 }
 
 void ABaseCharacter::Tick(float DeltaTime)
@@ -39,22 +28,44 @@ void ABaseCharacter::Tick(float DeltaTime)
 }
 
 /*
-* Attack
+* Montages
 */
 
-void ABaseCharacter::PlayAttackingMontage()
+void ABaseCharacter::PlayMontage(UAnimMontage* Montage, FName MontageName)
 {
 	TObjectPtr<UAnimInstance> animInstance = GetMesh()->GetAnimInstance();
-
-	if (attackMontage)
+	if (animInstance && Montage)
 	{
-		int8 selectedAttack_Index = attackIndex;
-		if (attackIndex == -1)
-			selectedAttack_Index = FMath::RandRange(0, attackMontage->GetNumSections() - 1);
-
-		playMontage(attackMontage, attackMontage->GetSectionName(selectedAttack_Index));
+		animInstance->Montage_Play(Montage, 1.f);
+		animInstance->Montage_JumpToSection(MontageName, Montage);
 	}
 }
+
+int16 ABaseCharacter::PlayRandomMontageSection(UAnimMontage* Montage, TArray<FName> MontageSectionNames)
+{
+	if (Montage && MontageSectionNames.Num() > 0)
+	{
+		int16 sectionIndex = FMath::RandRange(0, MontageSectionNames.Num() - 1);
+		PlayMontage(Montage, MontageSectionNames[sectionIndex]);
+		return sectionIndex;
+	}
+	return -1;
+}
+
+int16 ABaseCharacter::PlayAttackingMontage()
+{
+	return PlayRandomMontageSection(AttackMontage, AttackMontageSectionNames);
+}
+
+int16 ABaseCharacter::PlayDeathMontage()
+{
+	return PlayRandomMontageSection(deathMontage, DeathMontageSectionNames);
+}
+
+
+/* 
+* Attack
+*/
 
 void ABaseCharacter::setWeaponCollision(ECollisionEnabled::Type collisionEnabled)
 {
@@ -98,32 +109,3 @@ FName ABaseCharacter::getHitDirection(const FVector& hitPoint)
 			return FName("HitFromRight");
 	}
 }
-
-/*
-* Death
-*/
-
-void ABaseCharacter::playMontage(UAnimMontage* montage, FName montageName)
-{
-	TObjectPtr<UAnimInstance> animInstance = GetMesh()->GetAnimInstance();
-	if (animInstance && montage)
-	{
-		animInstance->Montage_Play(montage, 1.f);
-		animInstance->Montage_JumpToSection(montageName, montage);
-	}
-}
-
-int8 ABaseCharacter::playDeathMontage()
-{
-	if (deathMontage)
-	{
-		if (deathIndex == -1)
-			deathIndex = FMath::RandRange(0, deathMontage->GetNumSections() - 1);
-
-		playMontage(deathMontage, deathMontage->GetSectionName(deathIndex));
-
-		return deathIndex;
-	}
-	return -1;
-}
-

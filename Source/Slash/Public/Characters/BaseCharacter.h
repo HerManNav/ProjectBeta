@@ -46,7 +46,7 @@ protected:
 
 	virtual bool CanAttack() { return false; }
 
-	virtual void PlayAttackingMontage();
+	virtual int16 PlayAttackingMontage();
 
 	UFUNCTION(BlueprintCallable)
 	virtual void setWeaponCollision(ECollisionEnabled::Type collisionEnabled);
@@ -55,6 +55,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Indices|Attack")
 	int8 attackIndex = -1;								// Use to test specific attack animations (if -1, it is not used and animations will be randomly selected, as designed)
+
+	UPROPERTY(EditAnywhere, Category = "Montages|Attack")
+	TArray<FName> AttackMontageSectionNames;
 
 	/*
 	* SFXs and VFXs
@@ -70,10 +73,11 @@ protected:
 	* Montages
 	*/
 
-	virtual void playMontage(UAnimMontage* montage, FName montageName);
+	virtual int16 PlayRandomMontageSection(UAnimMontage* Montage, TArray<FName> MontageSections);
+	virtual void PlayMontage(UAnimMontage* Montage, FName MontageName);
 
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
-	TObjectPtr<UAnimMontage> attackMontage;
+	TObjectPtr<UAnimMontage> AttackMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
 	TObjectPtr<UAnimMontage> hitMontage;
@@ -85,7 +89,7 @@ protected:
 	* Death
 	*/
 
-	virtual int8 playDeathMontage();
+	virtual int16 PlayDeathMontage();
 	virtual EDeathPose GetDeathPose(int8 inDeathIndex) { return EDeathPose::EDP_Dead1; }
 
 	virtual void Die() {}
@@ -95,6 +99,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Indices|Montages")
 	int8 deathIndex = -1;								// Use to test specific death animations (if -1, it is not used and animations will be randomly selected, as designed)
+
+	UPROPERTY(EditAnywhere, Category = "Montages|Death")
+	TArray<FName> DeathMontageSectionNames;
 
 	/*
 	* State
