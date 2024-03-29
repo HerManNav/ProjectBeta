@@ -148,17 +148,25 @@ void AEnemy::PlayHitParticlesAtLocation(const FVector& location)
 
 void AEnemy::Die()
 {
-	HideHealthBar();
+	if (IsTerminal())
+	{
+		HideHealthBar();
 
-	GetWorldTimerManager().ClearAllTimersForObject(this);
+		GetWorldTimerManager().ClearAllTimersForObject(this);
 
-	StopAIController();
-	SetActorTickEnabled(false);
+		StopAIController();
+		SetActorTickEnabled(false);
 
-	DisableCollisionsForPawn();
+		DisableCollisionsForPawn();
+
+		FadeOut();
+
+		EnemyState = EEnemyState::EES_Dead;
+	}
+	else if (IsDead())
+		deathIndex = deathAnimationAfterDead_index;
 
 	PlayDeathAnimation();
-	FadeOut();
 }
 
 void AEnemy::StopAIController()
@@ -237,27 +245,27 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 	ActuallyReceiveDamage(DamageAmount);
 	UpdateHealthBar();
 	
-	if (IsAlive() && !IsAwareOfCharacter())
-	{
-		//SetFocalPointToActor(combatTarget);
-
-		ClearPatrolTimer();
-		SetCombatTarget(EventInstigator->GetPawn());
-		ChaseCurrentTarget();
-	}
+	PawnSeen(EventInstigator->GetPawn());
 
 	return DamageAmount;
 }
 
 bool AEnemy::CanTakeDamage()
 {
-	return attributes && healthBar;
+	return attributes && healthBar && !IsTerminal();
 }
 
 void AEnemy::ActuallyReceiveDamage(float DamageAmount)
 {
 	attributes->takeDamage(DamageAmount);
-	if (!attributes->isAlive()) EnemyState = EEnemyState::EES_Dead;
+
+	if (!HasSomeHealthRemaining() && !IsDying()) 
+		EnemyState = EEnemyState::EES_Terminal;
+}
+
+bool AEnemy::HasSomeHealthRemaining()
+{
+	return attributes->isAlive();
 }
 
 void AEnemy::UpdateHealthBar()
@@ -280,7 +288,7 @@ void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (IsDead()) return;
+	if (IsTerminal()) return;
 
 	if (!IsPatrolling())		// Pawn seen!
 		CheckCombat();
@@ -295,19 +303,17 @@ void AEnemy::Tick(float DeltaTime)
 
 void AEnemy::PawnSeen(APawn* pawn)
 {
-	if (!IsPatrolling() || IsDead()) return;
+	if (!IsPatrolling() || IsTerminal()) return;
 
-	if (IsPawnMainCharacter(pawn))
+	if (IsPawnMainCharacter(pawn) && IsCharacterInsideCombatRange(pawn))
 	{
-		if (IsCharacterInsideCombatRange(pawn) && IsPatrolling())
-		{
-			ShowHealthBar();
+		ShowHealthBar();
 
-			ClearPatrolTimer();
-			SetCombatTarget(pawn);
+		ClearPatrolTimer();
 
-			ChaseCurrentTarget();
-		}
+		SetCombatTarget(pawn);
+		SetFocalPointToActor(combatTarget);
+		ChaseCurrentTarget();
 	}
 }
 
@@ -496,17 +502,15 @@ void AEnemy::SetFocalPointToActor(AActor* actor)
 		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 		aiController->SetFocus(actor);
 	}
-	else
-	{
-		GetCharacterMovement()->bOrientRotationToMovement = true;
-		GetCharacterMovement()->bUseControllerDesiredRotation = false;
-		aiController->ClearFocus(EAIFocusPriority::Gameplay);
-	}
 }
 
 void AEnemy::ResetFocalPoint()
 {
-	SetFocalPointToActor(nullptr);
+	if (!aiController) return;
+
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	aiController->ClearFocus(EAIFocusPriority::Gameplay);
 }
 
 bool AEnemy::isActorWithinRadius(AActor* actor, float radius)
@@ -551,7 +555,7 @@ bool AEnemy::ShouldChaseCurrentTarget()
 
 bool AEnemy::CanAttack()
 {
-	return IsCharacterInsideAttackRange() && !IsDead() && !IsAttacking() && !IsEngaged();
+	return IsCharacterInsideAttackRange() && !IsTerminal() && !IsAttacking() && !IsEngaged();
 }
 
 bool AEnemy::IsDead()
@@ -561,7 +565,17 @@ bool AEnemy::IsDead()
 
 bool AEnemy::IsAlive()
 {
-	return EnemyState > EEnemyState::EES_Dead;
+	return EnemyState > EEnemyState::EES_Terminal;
+}
+
+bool AEnemy::IsTerminal()
+{
+	return EnemyState == EEnemyState::EES_Terminal;
+}
+
+bool AEnemy::IsDying()
+{
+	return EnemyState <= EEnemyState::EES_Terminal;
 }
 
 bool AEnemy::IsPatrolling()

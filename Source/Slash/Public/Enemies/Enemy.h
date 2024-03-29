@@ -123,10 +123,10 @@ private:
 	virtual void AttackEnd() override;
 
 	UPROPERTY(EditAnywhere, Category = "Attack|Timers")
-	float MinAttackWait = 0.8f;
+	float MinAttackWait = 1.f;
 
 	UPROPERTY(EditAnywhere, Category = "Attack|Timers")
-	float MaxAttackWait = 1.2f;
+	float MaxAttackWait = 1.4f;
 
 	FTimerHandle AttackTimer;
 
@@ -150,6 +150,11 @@ private:
 
 	virtual void Die() override;
 
+	UPROPERTY(EditAnywhere)
+	int8 deathAnimationAfterDead_index = 1;	// This will trigger an animation for the enemy after die if it gets hit again (e.g. 1 = "Death flying back" (see deathMontage) which is the most impressive one when enemy is on the floor)
+
+	/**
+
 	/**
 	* Death fadeout
 	*/
@@ -171,6 +176,8 @@ private:
 
 	bool IsDead();
 	bool IsAlive();
+	bool IsTerminal();
+	bool IsDying();
 	bool IsPatrolling();
 	bool IsChasing();
 	bool IsAttacking();
@@ -208,6 +215,7 @@ private:
 	/* Take Damage */
 	bool CanTakeDamage();
 	void ActuallyReceiveDamage(float DamageAmount);
+	bool HasSomeHealthRemaining();
 	void UpdateHealthBar();
 	bool IsAwareOfCharacter();
 	void SetCombatTarget(AActor* target);
