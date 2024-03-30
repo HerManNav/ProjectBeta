@@ -15,11 +15,11 @@ ATreasure::ATreasure()
 
 void ATreasure::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	TObjectPtr<ASlashCharacter> slashCharacter = Cast<ASlashCharacter>(OtherActor);
-	if (slashCharacter)
+	TObjectPtr<ASlashCharacter> SlashCharacter = Cast<ASlashCharacter>(OtherActor);
+	if (SlashCharacter)
 	{
-		if (pickupSound)
-			UGameplayStatics::PlaySoundAtLocation(this, pickupSound, GetActorLocation());
+		if (PickupSound)
+			UGameplayStatics::PlaySoundAtLocation(this, PickupSound, GetActorLocation());
 
 		Destroy();
 	}

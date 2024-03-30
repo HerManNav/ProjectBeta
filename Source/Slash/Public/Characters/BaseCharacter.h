@@ -37,9 +37,9 @@ protected:
 	/** Attack */
 	virtual void Attack() {};
 	virtual bool CanAttack() { return false; };
-	virtual FName getHitDirection(const FVector& hitPoint);
-	void PlayHitSoundAtLocation(const FVector& location);
-	void PlayHitParticlesAtLocation(const FVector& location);
+	void ReactToHitBasedOnHitDirection(const FVector& HitPoint);
+	void PlayHitSoundAtLocation(const FVector& Location);
+	void PlayHitParticlesAtLocation(const FVector& Location);
 
 	/** Montage */
 	virtual int16 PlayAttackingMontage();
@@ -55,7 +55,7 @@ protected:
 	virtual void AttackEnd() {}
 
 	UFUNCTION(BlueprintCallable)
-	virtual void setWeaponCollision(ECollisionEnabled::Type collisionEnabled);
+	virtual void SetWeaponCollision(ECollisionEnabled::Type CollisionEnabled);
 
 	/**
 	* Variables
@@ -64,27 +64,38 @@ protected:
 	/** State */
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<UAttributesComponent> attributes;
+	TObjectPtr<UAttributesComponent> Attributes;
 
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<AWeapon> weapon;
+	TObjectPtr<AWeapon> Weapon;
+
+	/** Attack */
+
+	UPROPERTY(EditAnywhere, Category = "Attack|Indices")
+	int8 AttackIndex = -1;								// Use to test specific attack animations (if -1, it is not used and animations will be randomly selected, as designed)
+
+	UPROPERTY(EditAnywhere, Category = "Death|Indices")
+	int8 DeathIndex = -1;								// Use to test specific death animations (if -1, it is not used and animations will be randomly selected, as designed)
+
+private:
+
+	int16 PlayRandomMontageSection(UAnimMontage* Montage, TArray<FName> MontageSections, int8 SectionIndexDefault = -1);	// If SectionIndexDefault != -1, it won't play a random animation but the indicated one
+	FName GetHitDirection(const FVector& HitPoint);
+
+	/*
+	* Variables
+	*/
 
 	/** Attack */
 
 	UPROPERTY(EditAnywhere, Category = "Attack")
-	float frontBackAngle = 20.f;						// Base angle to calculate hit directions
-
-	UPROPERTY(EditAnywhere, Category = "Attack|Indices")
-	int8 attackIndex = -1;								// Use to test specific attack animations (if -1, it is not used and animations will be randomly selected, as designed)
-
-	UPROPERTY(EditAnywhere, Category = "Death|Indices")
-	int8 deathIndex = -1;								// Use to test specific death animations (if -1, it is not used and animations will be randomly selected, as designed)
+	float FrontBackAngle = 20.f;						// Base angle to calculate hit directions
 
 	UPROPERTY(EditAnywhere, Category = "Attack|Effects")
-	TObjectPtr<USoundBase> hitSound;
+	TObjectPtr<USoundBase> HitSound;
 
 	UPROPERTY(EditAnywhere, Category = "Attack|Effects")
-	TObjectPtr<UParticleSystem> hitVFX;
+	TObjectPtr<UParticleSystem> HitVFX;
 
 	/** Montages */
 
@@ -92,7 +103,7 @@ protected:
 	TObjectPtr<UAnimMontage> AttackMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Montages|Attack")
-	TObjectPtr<UAnimMontage> hitMontage;
+	TObjectPtr<UAnimMontage> HitMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Montages|Death")
 	TObjectPtr<UAnimMontage> deathMontage;
@@ -102,9 +113,5 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Montages|Death")
 	TArray<FName> DeathMontageSectionNames;
-
-private:
-
-	virtual int16 PlayRandomMontageSection(UAnimMontage* Montage, TArray<FName> MontageSections);
 	
 };

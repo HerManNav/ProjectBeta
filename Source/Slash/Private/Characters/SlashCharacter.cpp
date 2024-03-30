@@ -27,20 +27,20 @@ ASlashCharacter::ASlashCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f);
 
 	// Components
-	springArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("springArm"));
-	springArm->SetupAttachment(GetRootComponent());
-	springArm->TargetArmLength = 300.f;
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->SetupAttachment(GetRootComponent());
+	SpringArm->TargetArmLength = 300.f;
 
-	viewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("viewCamera"));
-	viewCamera->SetupAttachment(springArm);
+	ViewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ViewCamera"));
+	ViewCamera->SetupAttachment(SpringArm);
 
-	hair = CreateDefaultSubobject<UGroomComponent>(TEXT("hair"));
-	hair->SetupAttachment(GetMesh());
-	hair->AttachmentName = FString("head");
+	Hair = CreateDefaultSubobject<UGroomComponent>(TEXT("Hair"));
+	Hair->SetupAttachment(GetMesh());
+	Hair->AttachmentName = FString("head");
 
-	eyebrows = CreateDefaultSubobject<UGroomComponent>(TEXT("eyebrows"));
-	eyebrows->SetupAttachment(GetMesh());
-	eyebrows->AttachmentName = FString("head");
+	Eyebrows = CreateDefaultSubobject<UGroomComponent>(TEXT("Eyebrows"));
+	Eyebrows->SetupAttachment(GetMesh());
+	Eyebrows->AttachmentName = FString("head");
 }
 
 void ASlashCharacter::BeginPlay()
@@ -67,7 +67,7 @@ void ASlashCharacter::InitMappingContext()
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			Subsystem->AddMappingContext(echoMappingContext, 0);
+			Subsystem->AddMappingContext(EchoMappingContext, 0);
 		}
 	}
 }
@@ -76,65 +76,65 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	if (UEnhancedInputComponent* enhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		enhancedInputComponent->BindAction(moveAction, ETriggerEvent::Triggered, this, &ASlashCharacter::move);
-		enhancedInputComponent->BindAction(lookAction, ETriggerEvent::Triggered, this, &ASlashCharacter::look);
-		enhancedInputComponent->BindAction(equipAction, ETriggerEvent::Completed, this, &ASlashCharacter::equip);
-		enhancedInputComponent->BindAction(attackAction, ETriggerEvent::Completed, this, &ASlashCharacter::Attack);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASlashCharacter::Move);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASlashCharacter::Look);
+		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Completed, this, &ASlashCharacter::Equip);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &ASlashCharacter::Attack);
 
-		enhancedInputComponent->BindAction(toggleWalkAction, ETriggerEvent::Completed, this, &ASlashCharacter::toggleWalk);
+		EnhancedInputComponent->BindAction(ToggleWalkAction, ETriggerEvent::Completed, this, &ASlashCharacter::ToggleWalk);
 
-		enhancedInputComponent->BindAction(jumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 	}
 }
 
-void ASlashCharacter::move(const FInputActionValue& value)
+void ASlashCharacter::Move(const FInputActionValue& Value)
 {	
 	if (ActionState == EActionState::EAS_Attacking) return;
 
-	const FVector2D amount = value.Get<FVector2D>();
+	const FVector2D Amount = Value.Get<FVector2D>();
 	if (Controller)
 	{
-		const FVector forwardDirection = FVector::CrossProduct(viewCamera->GetRightVector(), FVector::UpVector);
-		const FVector rightDirection = viewCamera->GetRightVector();
-		AddMovementInput(forwardDirection, amount.X);
-		AddMovementInput(rightDirection, amount.Y);
+		const FVector forwardDirection = FVector::CrossProduct(ViewCamera->GetRightVector(), FVector::UpVector);
+		const FVector rightDirection = ViewCamera->GetRightVector();
+		AddMovementInput(forwardDirection, Amount.X);
+		AddMovementInput(rightDirection, Amount.Y);
 
 		// This is the solution presented by Stephen (the result is the same). I like my solution (this one's maybe better in terms of performance)
 		/*const FRotator ControlRotation = GetControlRotation();
 		const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
 
 		const FVector forwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(forwardDirection, amount.X);
+		AddMovementInput(forwardDirection, Amount.X);
 
 		const FVector rightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		AddMovementInput(rightDirection, amount.Y);*/
+		AddMovementInput(rightDirection, Amount.Y);*/
 	}
 }
 
-void ASlashCharacter::look(const FInputActionValue& value)
+void ASlashCharacter::Look(const FInputActionValue& Value)
 {
-	const FVector2D amount = value.Get<FVector2D>();
+	const FVector2D Amount = Value.Get<FVector2D>();
 	if (Controller)
 	{
-		AddControllerYawInput(amount.X);
-		AddControllerPitchInput(amount.Y);
-		//viewCamera->AddLocalRotation(FRotator(amount.Y, amount.X, 0.f));		// This would move only the camera, not the whole bunch of components
+		AddControllerYawInput(Amount.X);
+		AddControllerPitchInput(Amount.Y);
+		//viewCamera->AddLocalRotation(FRotator(Amount.Y, Amount.X, 0.f));		// This would move only the camera, not the whole bunch of components
 	}
 }
 
-void ASlashCharacter::equip()
+void ASlashCharacter::Equip()
 {
-	 TObjectPtr<AWeapon> weaponToEquip = Cast<AWeapon>(overlappingItem);
-	 if (weaponToEquip)
+	 TObjectPtr<AWeapon> WeaponToEquip = Cast<AWeapon>(OverlappingItem);
+	 if (WeaponToEquip)
 	 {
-		 weaponToEquip->Equip(this->GetMesh(), FName("socket_rightHand"), this, this);
-		 weapon = weaponToEquip;
+		 WeaponToEquip->Equip(this->GetMesh(), FName("socket_rightHand"), this, this);
+		 Weapon = WeaponToEquip;
 
 		 CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
 
-		 updateMaxGroundSpeed();
+		 UpdateMaxGroundSpeed();
 	 }
 }
 
@@ -150,8 +150,8 @@ void ASlashCharacter::Attack()
 
 	if (CanAttack())
 	{
-		PlayAttackingMontage();
-		ActionState = EActionState::EAS_Attacking;
+		if (PlayAttackingMontage() != -1)
+			ActionState = EActionState::EAS_Attacking;
 	}
 }
 
@@ -160,26 +160,26 @@ void ASlashCharacter::AttackEnd()
 	ActionState = EActionState::EAS_Unoccupied;
 }
 
-void ASlashCharacter::toggleWalk()
+void ASlashCharacter::ToggleWalk()
 {
 	bWalking = !bWalking;
 
-	updateMaxGroundSpeed();
+	UpdateMaxGroundSpeed();
 }
 
-void ASlashCharacter::updateMaxGroundSpeed()
+void ASlashCharacter::UpdateMaxGroundSpeed()
 {
 	if (bWalking)
 	{
 		if (CharacterState == ECharacterState::ECS_Unequipped)
-			GetCharacterMovement()->MaxWalkSpeed = attributes->GetWalkingSpeedUnequipped();
+			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetWalkingSpeedUnequipped();
 		else
-			GetCharacterMovement()->MaxWalkSpeed = attributes->GetWalkingSpeedEquipped();
+			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetWalkingSpeedEquipped();
 	}
 	else {
 		if (CharacterState == ECharacterState::ECS_Unequipped)
-			GetCharacterMovement()->MaxWalkSpeed = attributes->GetRunningSpeedUnequipped();
+			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetRunningSpeedUnequipped();
 		else
-			GetCharacterMovement()->MaxWalkSpeed = attributes->GetRunningSpeedEquipped();
+			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetRunningSpeedEquipped();
 	}
 }

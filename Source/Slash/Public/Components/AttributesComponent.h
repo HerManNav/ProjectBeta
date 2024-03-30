@@ -25,10 +25,10 @@ protected:
 private:
 
 	UPROPERTY(EditAnywhere, Category = Attributes, meta = (ClampMin = "0"))
-	float health = 100.f;
+	float Health = 100.f;
 
 	UPROPERTY(EditAnywhere, Category = Attributes, meta = (ClampMin = "0"))
-	float maxHealth = 100.f;
+	float MaxHealth = 100.f;
 
 	UPROPERTY(EditAnywhere, Category = Movement)
 	float WalkingSpeedUnequipped = 200.f;
@@ -48,13 +48,13 @@ public:
 	* Getters and setters
 	*/
 
-	float getMaxHealth() { return maxHealth; }
+	float GetMaxHealth() { return MaxHealth; }
 
-	bool isAlive() { return health > 0.f; }
+	bool IsAlive() { return Health > 0.f; }
 
-	void takeDamage(float damage) { health = FMath::Clamp(health - damage, 0.f, maxHealth); }
+	void TakeDamage(float damage) { Health = FMath::Clamp(Health - damage, 0.f, MaxHealth); }
 
-	float getHealthPercent() { return health / maxHealth; }
+	float getHealthPercent() { return Health / MaxHealth; }
 
 	float GetWalkingSpeedUnequipped() { return WalkingSpeedUnequipped; }
 

@@ -45,14 +45,14 @@ protected:
 	/** </ABaseCharacter> */
 
 	/** Input callbacks */
-	void move(const FInputActionValue& value);
-	void look(const FInputActionValue& value);
-	void equip();
-	void toggleWalk();
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+	void Equip();
+	void ToggleWalk();
 
 	/** State */
 
-	void updateMaxGroundSpeed();
+	void UpdateMaxGroundSpeed();
 	
 	/*
 	* Variables
@@ -63,25 +63,25 @@ protected:
 	/** Input */
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputMappingContext> echoMappingContext;
+	TObjectPtr<UInputMappingContext> EchoMappingContext;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputAction> moveAction;
+	TObjectPtr<UInputAction> MoveAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputAction> lookAction;
+	TObjectPtr<UInputAction> LookAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputAction> jumpAction;
+	TObjectPtr<UInputAction> JumpAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputAction> toggleWalkAction;
+	TObjectPtr<UInputAction> ToggleWalkAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputAction> equipAction;
+	TObjectPtr<UInputAction> EquipAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputAction> attackAction;
+	TObjectPtr<UInputAction> AttackAction;
 
 
 private:
@@ -105,30 +105,30 @@ private:
 	EActionState ActionState = EActionState::EAS_Unoccupied;
 
 	UPROPERTY(VisibleInstanceOnly)
-	TObjectPtr<AItem> overlappingItem;
+	TObjectPtr<AItem> OverlappingItem;
 
 	/** Components */
 
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<USpringArmComponent> springArm;
+	TObjectPtr<USpringArmComponent> SpringArm;
 
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UCameraComponent> viewCamera;
+	TObjectPtr<UCameraComponent> ViewCamera;
 
 	UPROPERTY(VisibleAnywhere, Category = Hair)
-	TObjectPtr<UGroomComponent> hair;
+	TObjectPtr<UGroomComponent> Hair;
 
 	UPROPERTY(VisibleAnywhere, Category = Hair)
-	TObjectPtr<UGroomComponent> eyebrows;
+	TObjectPtr<UGroomComponent> Eyebrows;
 
 public:
 
 	/** Getters and setters */
 
-	FORCEINLINE void setOverlappingItem(AItem* item) { overlappingItem = item; }
+	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
 
-	FORCEINLINE ECharacterState getCharacterState() const { return CharacterState; }
+	FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }
 
-	FORCEINLINE EActionState getCharacterActionState() const { return ActionState; }
+	FORCEINLINE EActionState GetCharacterActionState() const { return ActionState; }
 
 };

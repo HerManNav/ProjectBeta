@@ -13,9 +13,9 @@
 
 ABaseCharacter::ABaseCharacter()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
-	attributes = CreateDefaultSubobject<UAttributesComponent>(TEXT("attributes"));
+	Attributes = CreateDefaultSubobject<UAttributesComponent>(TEXT("attributes"));
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 }
@@ -41,32 +41,40 @@ void ABaseCharacter::BeginPlay()
 
 int16 ABaseCharacter::PlayAttackingMontage()
 {
-	return PlayRandomMontageSection(AttackMontage, AttackMontageSectionNames);
+	return PlayRandomMontageSection(AttackMontage, AttackMontageSectionNames, AttackIndex);
 }
 
 int16 ABaseCharacter::PlayDeathMontage()
 {
-	return PlayRandomMontageSection(deathMontage, DeathMontageSectionNames);
+	return PlayRandomMontageSection(deathMontage, DeathMontageSectionNames, DeathIndex);
 }
 
 void ABaseCharacter::PlayMontage(UAnimMontage* Montage, FName MontageName)
 {
-	TObjectPtr<UAnimInstance> animInstance = GetMesh()->GetAnimInstance();
-	if (animInstance && Montage)
+	TObjectPtr<UAnimInstance> AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && Montage)
 	{
-		animInstance->Montage_Play(Montage, 1.f);
-		animInstance->Montage_JumpToSection(MontageName, Montage);
+		AnimInstance->Montage_Play(Montage, 1.f);
+		AnimInstance->Montage_JumpToSection(MontageName, Montage);
 	}
 }
 
-int16 ABaseCharacter::PlayRandomMontageSection(UAnimMontage* Montage, TArray<FName> MontageSectionNames)
+int16 ABaseCharacter::PlayRandomMontageSection(UAnimMontage* Montage, TArray<FName> MontageSectionNames, int8 SectionIndexDefault)
 {
-	if (Montage && MontageSectionNames.Num() > 0)
+	bool bCanPlayMontageSection =	Montage && 
+									MontageSectionNames.Num() > 0 &&
+									-1 <= SectionIndexDefault && SectionIndexDefault < MontageSectionNames.Num();
+	if (bCanPlayMontageSection)
 	{
-		int16 sectionIndex = FMath::RandRange(0, MontageSectionNames.Num() - 1);
-		PlayMontage(Montage, MontageSectionNames[sectionIndex]);
-		return sectionIndex;
+		int16 SectionIndex = SectionIndexDefault;
+		if (SectionIndexDefault == -1)
+			SectionIndex = FMath::RandRange(0, MontageSectionNames.Num() - 1);
+
+		PlayMontage(Montage, MontageSectionNames[SectionIndex]);
+		return SectionIndex;
 	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("Animation montage section index not available, not playing animation"))
 	return -1;
 }
 
@@ -74,15 +82,21 @@ int16 ABaseCharacter::PlayRandomMontageSection(UAnimMontage* Montage, TArray<FNa
 * Attack
 */
 
-FName ABaseCharacter::getHitDirection(const FVector& hitPoint)
+void ABaseCharacter::ReactToHitBasedOnHitDirection(const FVector& HitPoint)
 {
-	FVector actorForwardVector = GetActorForwardVector().GetSafeNormal();
-	FVector hitVector = (FVector(hitPoint.X, hitPoint.Y, GetActorLocation().Z) - GetActorLocation()).GetSafeNormal();	// We couldn't do "hitVector = (hitPoint - GetActorLocation()).GetSafeNormal(); hitVector.Z = actorForwardVector.Z;" because of the normalization. We should do instead "hitVector = (hitPoint - GetActorLocation()); hitVector.Z = actorForwardVector.Z; hitVector = hitVector.GetSafeNormal();", which is equivalent to this line here
+	FName DirectionName = GetHitDirection(HitPoint);
+	PlayMontage(HitMontage, DirectionName);
+}
+
+FName ABaseCharacter::GetHitDirection(const FVector& HitPoint)
+{
+	FVector ActorForwardVector = GetActorForwardVector().GetSafeNormal();
+	FVector HitVector = (FVector(HitPoint.X, HitPoint.Y, GetActorLocation().Z) - GetActorLocation()).GetSafeNormal();	// We couldn't do "hitVector = (hitPoint - GetActorLocation()).GetSafeNormal(); hitVector.Z = actorForwardVector.Z;" because of the normalization. We should do instead "hitVector = (hitPoint - GetActorLocation()); hitVector.Z = actorForwardVector.Z; hitVector = hitVector.GetSafeNormal();", which is equivalent to this line here
 
 	// dotProd(afv, hv) = |afv||hv| * cos(theta) ; but |afv| = |hv| = 1 since they are normalized vectors, so dotProd(afv, hv) = cos(theta)
-	float cosTheta = FVector::DotProduct(actorForwardVector, hitVector);
-	float angleInRadians = acos(cosTheta);
-	float angleInDegrees = FMath::RadiansToDegrees(angleInRadians);
+	float CosTheta = FVector::DotProduct(ActorForwardVector, HitVector);
+	float AngleInRadians = acos(CosTheta);
+	float AngleInDegrees = FMath::RadiansToDegrees(AngleInRadians);
 
 	/* DEBUG */
 	/*DRAW_SPHERE(hitPoint, 10.f);
@@ -93,27 +107,27 @@ FName ABaseCharacter::getHitDirection(const FVector& hitPoint)
 	UE_LOG(LogTemp, Warning, TEXT("degrees %f"), FVector::CrossProduct(actorForwardVector, hitVector).Z);*/
 	/* END DEBUG */
 
-	if (0.f < angleInDegrees && angleInDegrees < frontBackAngle)
+	if (0.f < AngleInDegrees && AngleInDegrees < FrontBackAngle)
 		return FName("HitFromFront");
-	else if ((180.f - frontBackAngle) < angleInDegrees && angleInDegrees < 180.f)
+	else if ((180.f - FrontBackAngle) < AngleInDegrees && AngleInDegrees < 180.f)
 		return FName("HitFromBack");
 	else
 	{
 		// The crossProd for 2 vectors in the same plane is a perpendicular one (positive or negative). Components X & Y are 0, and in Z it is the magnitude of the resulting product
-		float fromLeftOrRight = FVector::CrossProduct(actorForwardVector, hitVector).Z;
-		if (fromLeftOrRight < 0.f)
+		float FromLeftOrRight = FVector::CrossProduct(ActorForwardVector, HitVector).Z;
+		if (FromLeftOrRight < 0.f)
 			return FName("HitFromLeft");
 		else
 			return FName("HitFromRight");
 	}
 }
 
-void ABaseCharacter::setWeaponCollision(ECollisionEnabled::Type collisionEnabled)
+void ABaseCharacter::SetWeaponCollision(ECollisionEnabled::Type CollisionEnabled)
 {
-	if (weapon)
+	if (Weapon)
 	{
-		weapon->setBoxCollision(collisionEnabled);
-		weapon->clearActorsToIgnore();
+		Weapon->SetBoxCollision(CollisionEnabled);
+		Weapon->ClearActorsToIgnore();
 	}
 }
 
@@ -121,12 +135,12 @@ void ABaseCharacter::setWeaponCollision(ECollisionEnabled::Type collisionEnabled
 * Sound and VFX
 */
 
-void ABaseCharacter::PlayHitSoundAtLocation(const FVector& location)
+void ABaseCharacter::PlayHitSoundAtLocation(const FVector& Location)
 {
-	if (hitSound) UGameplayStatics::PlaySoundAtLocation(this, hitSound, location);
+	if (HitSound) UGameplayStatics::PlaySoundAtLocation(this, HitSound, Location);
 }
 
-void ABaseCharacter::PlayHitParticlesAtLocation(const FVector& location)
+void ABaseCharacter::PlayHitParticlesAtLocation(const FVector& Location)
 {
-	if (hitVFX) UGameplayStatics::SpawnEmitterAtLocation(this, hitVFX, location);
+	if (HitVFX) UGameplayStatics::SpawnEmitterAtLocation(this, HitVFX, Location);
 }

@@ -4,8 +4,8 @@
 #include "HUD/HealthBar.h"
 #include "Components/ProgressBar.h"
 
-void UHealthBar::setPercentage(float percentage)
+void UHealthBar::SetPercentage(float Percentage)
 {
-	if (healthBar) 
-		healthBar->SetPercent(percentage);
+	if (HealthBar) 
+		HealthBar->SetPercent(Percentage);
 }

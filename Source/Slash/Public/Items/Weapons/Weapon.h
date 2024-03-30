@@ -21,7 +21,7 @@ public:
 	AWeapon();
 
 	UFUNCTION(BlueprintCallable)
-	void Equip(USceneComponent* InParent, FName InSocketName, AActor* newOwner, APawn* newInstigator);
+	void Equip(USceneComponent* InParent, FName InSocketName, AActor* NewOwner, APawn* NewInstigator);
 	
 protected:
 	virtual void BeginPlay() override;
@@ -35,15 +35,14 @@ protected:
 	void OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void createHitFields(const FVector& location);
+	void CreateHitFields(const FVector& Location);
 
 	/*
 	* Damage related members
 	*/
 
-	float baseDamage = 20.f;
-
-	float damageVariation = 10.f;
+	float BaseDamage = 20.f;
+	float DamageVariation = 10.f;
 
 private:
 
@@ -59,7 +58,7 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	USceneComponent* BoxTraceEnd;
 
-	TArray<AActor*> actorsToIgnore;
+	TArray<AActor*> ActorsToIgnore;
 
 public:
 
@@ -67,8 +66,8 @@ public:
 	* Getters & setters
 	*/
 
-	void setBoxCollision(ECollisionEnabled::Type collisionEnabled);		// Need to define this in the .cpp because we do stuff with UBoxComponent, which is not included in this .h file!
+	void SetBoxCollision(ECollisionEnabled::Type CollisionEnabled);		// Need to define this in the .cpp because we do stuff with UBoxComponent, which is not included in this .h file!
 
-	void clearActorsToIgnore() { actorsToIgnore.Empty(); };
+	void ClearActorsToIgnore() { ActorsToIgnore.Empty(); };
 
 };

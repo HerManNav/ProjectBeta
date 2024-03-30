@@ -21,7 +21,7 @@ public:
 
 	ABreakableActor();
 
-	virtual void getHit_Implementation(const FVector& hitPoint) override;
+	virtual void GetHit_Implementation(const FVector& HitPoint) override;
 
 protected:
 
@@ -32,20 +32,20 @@ protected:
 	*/
 
 	UFUNCTION()
-	virtual void onChaosBreakEvent(const FChaosBreakEvent& breakEvent);
+	virtual void OnChaosBreakEvent(const FChaosBreakEvent& BreakEvent);
 
 	UPROPERTY(BlueprintReadWrite)
-	bool onChaosBreakEvent_processed;
+	bool bProcessedOnChaosBreakEvent;
 
 	/* 
 	* Spawning treasure members 
 	*/
 
 	UPROPERTY(EditAnywhere, Category = ObjectSpawning)
-	TArray<TSubclassOf<ATreasure>> classesToSpawn;
+	TArray<TSubclassOf<ATreasure>> ClassesToSpawn;
 
 	UPROPERTY(EditAnywhere, Category = Sound)
-	TObjectPtr<USoundBase> breakingSound;
+	TObjectPtr<USoundBase> BreakingSound;
 
 private:
 
@@ -54,17 +54,17 @@ private:
 	*/
 
 	UPROPERTY(EditAnywhere)
-	TObjectPtr<UGeometryCollectionComponent> geometryCollection;
+	TObjectPtr<UGeometryCollectionComponent> GeometryCollection;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UCapsuleComponent> collisionCapsule;
+	TObjectPtr<UCapsuleComponent> CollisionCapsule;
 
 	/*
 	* Spawn treasure
 	*/
 
-	ATreasure* spawnedTreasure;		// This is needed to be a class member for the delay to work properly. If it was a local variable in spawnRandomTreasure instead, we would need to pass a copy of spawnedTreasure, cause if we'd pass a reference to the lambda like [&spawnedTreasure], it will crash after the timer! Besides, it can be a raw pointer since it's not marked with UPROPERTY (not in the Unreal refletion system)
+	ATreasure* SpawnedTreasure;		// This is needed to be a class member for the delay to work properly. If it was a local variable in spawnRandomTreasure instead, we would need to pass a copy of spawnedTreasure, cause if we'd pass a reference to the lambda like [&spawnedTreasure], it will crash after the timer! Besides, it can be a raw pointer since it's not marked with UPROPERTY (not in the Unreal refletion system)
 
-	void spawnRandomTreasure(const FVector& location);
+	void spawnRandomTreasure(const FVector& Location);
 
 };

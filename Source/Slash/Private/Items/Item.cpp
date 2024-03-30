@@ -18,8 +18,8 @@ AItem::AItem()
 	ItemMesh->SetupAttachment(GetRootComponent());
 	ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	niagara = CreateDefaultSubobject<UNiagaraComponent>(TEXT("niagara"));
-	niagara->SetupAttachment(Sphere);
+	Niagara = CreateDefaultSubobject<UNiagaraComponent>(TEXT("niagara"));
+	Niagara->SetupAttachment(Sphere);
 }
 
 void AItem::BeginPlay()
@@ -45,7 +45,7 @@ void AItem::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 	ASlashCharacter* SlashCharacter = Cast<ASlashCharacter>(OtherActor);
 	if (SlashCharacter)
 	{
-		SlashCharacter->setOverlappingItem(this);
+		SlashCharacter->SetOverlappingItem(this);
 	}
 }
 
@@ -54,11 +54,11 @@ void AItem::OnSphereOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor*
 	ASlashCharacter* SlashCharacter = Cast<ASlashCharacter>(OtherActor);
 	if (SlashCharacter)
 	{
-		SlashCharacter->setOverlappingItem(nullptr);
+		SlashCharacter->SetOverlappingItem(nullptr);
 	}
 }
 
-void AItem::setGenerateOverlapEvents(bool enable)
+void AItem::SetGenerateOverlapEvents(bool enable)
 {
 	Sphere->SetGenerateOverlapEvents(enable);
 }

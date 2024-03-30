@@ -16,11 +16,11 @@ class SLASH_API UHealthBarComponent : public UWidgetComponent
 	
 public:
 
-	void setPercentage(float percentage);
+	void SetPercentage(float Percentage);
 
 protected:
 
 	UPROPERTY()		// With this we make sure that healthBarWidget is null and not garbage! Unreal must take it into account for that
-	TObjectPtr<class UHealthBar> healthBarWidget;
+	TObjectPtr<class UHealthBar> HealthBarWidget;
 
 };

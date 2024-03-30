@@ -28,7 +28,7 @@ public:
 	virtual void Destroyed() override;
 
 	/** <IHitInterface> */
-	virtual void getHit_Implementation(const FVector& hitPoint) override;
+	virtual void GetHit_Implementation(const FVector& HitPoint) override;
 	/** </IHitInterface> */
 
 protected:
@@ -74,10 +74,10 @@ private:
 	void ShowHealthBar();
 	void HideHealthBar();
 
-	void SetFocalPointToActor(AActor* actor = nullptr);
+	void SetFocalPointToActor(AActor* Actor = nullptr);
 	void ResetFocalPoint();
 
-	void moveToTarget(const AActor* target, float acceptanceRadius = 15.f);
+	void MoveToTarget(const AActor* Target, float AcceptanceRadius = 15.f);
 
 	float GetPatrollingSpeed();
 	float GetChasingSpeed();
@@ -89,8 +89,8 @@ private:
 	bool IsCharacterOutOfAttackRange();
 	bool IsCharacterInsideAttackRange();
 
-	bool IsPawnMainCharacter(APawn* pawn);
-	bool IsCharacterInsideCombatRange(APawn* pawn);
+	bool IsPawnMainCharacter(APawn* Pawn);
+	bool IsCharacterInsideCombatRange(APawn* Pawn);
 
 	void LoseInterest();
 	void KeepPatrolling();
@@ -98,21 +98,20 @@ private:
 	void ChaseCurrentTarget();
 	void SetAttackTimer();
 	void ClearAttackTimer();
-	bool CanMoveToTarget(const AActor* target);
+	bool CanMoveToTarget(const AActor* Target);
 
 	/** Patrol */
 	void CheckPatrol();
 	bool CanPatrol();
 	bool HasReachedCurrentTarget();
-	AActor* selectNextPatrolTarget();
-	void MoveToNextPatrolTargetAfterSeconds(float seconds);
+	AActor* SelectNextPatrolTarget();
+	void MoveToNextPatrolTargetAfterSeconds(float Seconds);
 	void MoveToPatrolTarget();
-	void GetRemainingPatrolPoints(TArray<AActor*>& remainingPatrolPoints);
-	AActor* GetRandomActorFromArray(const TArray<AActor*>& remainingPatrolPoints);
+	void GetRemainingPatrolPoints(TArray<AActor*>& RemainingPatrolPoints);
+	AActor* GetRandomActorFromArray(const TArray<AActor*>& RemainingPatrolPoints);
 	void ClearPatrolTimer();	
 
 	/** Take Damage */
-	void PlayHitAnimationBasedOnHitPoint(const FVector& hitPoint);
 	bool CanTakeDamage();
 	void ActuallyReceiveDamage(float DamageAmount);
 	bool HasSomeHealthRemaining();
@@ -130,53 +129,53 @@ private:
 	/** Exposed */
 
 	UFUNCTION()
-	void PawnSeen(APawn* pawn);
+	void PawnSeen(APawn* Pawn);
 
 	UFUNCTION(BlueprintCallable)
-	bool isActorWithinRadius(AActor* target, float radius);
+	bool IsActorWithinRadius(AActor* Target, float Radius);
 
 	/**
 	* Variables
 	*/
 
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UHealthBarComponent> healthBar;
+	TObjectPtr<UHealthBarComponent> HealthBar;
 
 	UPROPERTY(VisibleDefaultsOnly)
-	TObjectPtr<UNiagaraComponent> deathPetals;
+	TObjectPtr<UNiagaraComponent> DeathPetals;
 
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UPawnSensingComponent> sensingComponent;
+	TObjectPtr<UPawnSensingComponent> SensingComponent;
 
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AWeapon> weaponClass;
+	TSubclassOf<AWeapon> WeaponClass;
 
 	/** Combat (AI) */
 
 	UPROPERTY()
-	TObjectPtr<AActor> combatTarget;
+	TObjectPtr<AActor> CombatTarget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
-	float combatRadius = 1000.f;
+	float CombatRadius = 1000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
-	float attackRadius = 200.f;
+	float AttackRadius = 200.f;
 
 	/** Patrol (AI) */
 
 	UPROPERTY()
-	TObjectPtr<AAIController> aiController;
+	TObjectPtr<AAIController> AIController;
 
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = Patrol, meta = (AllowPrivateAccess = true))
-	TObjectPtr<AActor> currentPatrolTarget;
+	TObjectPtr<AActor> CurrentPatrolTarget;
 
 	UPROPERTY(EditInstanceOnly, Category = Patrol)
-	TArray<TObjectPtr<AActor>> patrolPoints;
+	TArray<TObjectPtr<AActor>> PatrolPoints;
 
 	UPROPERTY(EditAnywhere)
-	float patrolRadius = 200.f;		// Don't set this below 150! Just to be sure (should be always > (105 + 15 + 1) ; 105 is the variation in AAIController::MoveTo method, +15 i the acceptanceRadius and +1 is just in case for precision errors)
+	float PatrolRadius = 200.f;		// Don't set this below 150! Just to be sure (should be always > (105 + 15 + 1) ; 105 is the variation in AAIController::MoveTo method, +15 i the acceptanceRadius and +1 is just in case for precision errors)
 
-	FTimerHandle patrolTimer;
+	FTimerHandle PatrolTimer;
 
 	/** Attack */
 
@@ -191,25 +190,25 @@ private:
 	/** Death */
 
 	UPROPERTY(EditAnywhere)
-	int8 deathAnimationAfterDead_index = 1;	// This will trigger an animation for the enemy after die if it gets hit again (e.g. 1 = "Death flying back" (see deathMontage) which is the most impressive one when enemy is on the floor)
+	int8 DeathAnimationAfterDead_index = 1;	// This will trigger an animation for the enemy after die if it gets hit again (e.g. 1 = "Death flying back" (see deathMontage) which is the most impressive one when enemy is on the floor)
 
 	/** Death: Dithering */
 
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UMaterialInterface> materialInstanceDynamic;
+	TObjectPtr<UMaterialInterface> MaterialInstanceDynamic;
 
 	UPROPERTY()								// Without this, this object would be considered for the GC, and then deleted in an uncontrolled way. So this prevents it and Unreal won't crash trying to access it after deleted (as it'd happen in fadeOut::decreaseDitheringOnMaterial method)
-	TObjectPtr<UMaterialInstanceDynamic> ditheringMaterial;
+	TObjectPtr<UMaterialInstanceDynamic> DitheringMaterial;
 
-	FTimerHandle timerHandler_dithering;
-	FTimerHandle timerHandler_deathPetals;
+	FTimerHandle TimerHandler_dithering;
+	FTimerHandle TimerHandler_deathPetals;
 
-	float dithering_startTime;				// Wall-clock time at which the timers for the fade out and deathPetals particles are set (e.g. second 10.f of the simulation)
-	float dithering_initialDelay = 5.f;		// Time before start to fade out
-	float dithering_totalTime = 3.f;		// Total time that takes to complete the fade out
-	float dithering_execRate = 3.f / 100.f; // fadeOut() method is executed every dithering_execRate seconds
-	float dithering_extraTime = 3.f;		// Time before destroying the enemy instance (extra time to let the Niagara effects finish)
+	float Dithering_startTime;				// Wall-clock time at which the timers for the fade out and DeathPetals particles are set (e.g. second 10.f of the simulation)
+	float Dithering_initialDelay = 5.f;		// Time before start to fade out
+	float Dithering_totalTime = 3.f;		// Total time that takes to complete the fade out
+	float Dithering_execRate = 3.f / 100.f; // fadeOut() method is executed every dithering_execRate seconds
+	float Dithering_extraTime = 3.f;		// Time before destroying the enemy instance (extra time to let the Niagara effects finish)
 
-	float deathPetals_initialDelay = 3.f;	// Time before start to play the deathPetals particles
+	float DeathPetals_initialDelay = 3.f;	// Time before start to play the DeathPetals particles
 
 };

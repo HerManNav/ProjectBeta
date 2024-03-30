@@ -23,21 +23,21 @@ public:
 
 	void NativeInitializeAnimation() override;
 
-	void NativeUpdateAnimation(float deltaTime) override;
+	void NativeUpdateAnimation(float DeltaTime) override;
 
 	UPROPERTY(BlueprintReadOnly)
-	TObjectPtr<ASlashCharacter> slashCharacter;
+	TObjectPtr<ASlashCharacter> SlashCharacter;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
-	TObjectPtr<UCharacterMovementComponent> slashCharacterMovement;
+	TObjectPtr<UCharacterMovementComponent> SlashCharacterMovement;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
-	float groundSpeed;
+	float GroundSpeed;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	bool bIsFalling;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Movement | Character state")
-	ECharacterState characterState;
+	ECharacterState CharacterState;
 
 };
