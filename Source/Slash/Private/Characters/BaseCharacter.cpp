@@ -3,13 +3,26 @@
 
 #include "Characters/BaseCharacter.h"
 #include "Items/Weapons/Weapon.h"
+
 #include "Components/AttributesComponent.h"
+
+#include "Kismet/GameplayStatics.h"
+//#include "Kismet/KismetSystemLibrary.h"
+
+//#include "Slash/DebugMacros.h"
 
 ABaseCharacter::ABaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	attributes = CreateDefaultSubobject<UAttributesComponent>(TEXT("attributes"));
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+}
+
+void ABaseCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 }
 
 void ABaseCharacter::BeginPlay()
@@ -22,14 +35,19 @@ void ABaseCharacter::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("No montage sections specified for Death montage. No animation will be played."));
 }
 
-void ABaseCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
 /*
 * Montages
 */
+
+int16 ABaseCharacter::PlayAttackingMontage()
+{
+	return PlayRandomMontageSection(AttackMontage, AttackMontageSectionNames);
+}
+
+int16 ABaseCharacter::PlayDeathMontage()
+{
+	return PlayRandomMontageSection(deathMontage, DeathMontageSectionNames);
+}
 
 void ABaseCharacter::PlayMontage(UAnimMontage* Montage, FName MontageName)
 {
@@ -52,29 +70,9 @@ int16 ABaseCharacter::PlayRandomMontageSection(UAnimMontage* Montage, TArray<FNa
 	return -1;
 }
 
-int16 ABaseCharacter::PlayAttackingMontage()
-{
-	return PlayRandomMontageSection(AttackMontage, AttackMontageSectionNames);
-}
-
-int16 ABaseCharacter::PlayDeathMontage()
-{
-	return PlayRandomMontageSection(deathMontage, DeathMontageSectionNames);
-}
-
-
 /* 
 * Attack
 */
-
-void ABaseCharacter::setWeaponCollision(ECollisionEnabled::Type collisionEnabled)
-{
-	if (weapon)
-	{
-		weapon->setBoxCollision(collisionEnabled);
-		weapon->clearActorsToIgnore();
-	}
-}
 
 FName ABaseCharacter::getHitDirection(const FVector& hitPoint)
 {
@@ -108,4 +106,27 @@ FName ABaseCharacter::getHitDirection(const FVector& hitPoint)
 		else
 			return FName("HitFromRight");
 	}
+}
+
+void ABaseCharacter::setWeaponCollision(ECollisionEnabled::Type collisionEnabled)
+{
+	if (weapon)
+	{
+		weapon->setBoxCollision(collisionEnabled);
+		weapon->clearActorsToIgnore();
+	}
+}
+
+/*
+* Sound and VFX
+*/
+
+void ABaseCharacter::PlayHitSoundAtLocation(const FVector& location)
+{
+	if (hitSound) UGameplayStatics::PlaySoundAtLocation(this, hitSound, location);
+}
+
+void ABaseCharacter::PlayHitParticlesAtLocation(const FVector& location)
+{
+	if (hitVFX) UGameplayStatics::SpawnEmitterAtLocation(this, hitVFX, location);
 }

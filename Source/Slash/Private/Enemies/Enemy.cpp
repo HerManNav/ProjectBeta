@@ -2,17 +2,13 @@
 
 
 #include "Enemies/Enemy.h"
-#include "Characters/SlashCharacter.h"
+#include "Items/Weapons/Weapon.h"
+
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Slash/DebugMacros.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "Kismet/GameplayStatics.h"
-#include "Math/UnrealMathUtility.h"
 #include "Components/AttributesComponent.h"
 #include "HUD/HealthBarComponent.h"
-#include "Items/Weapons/Weapon.h"
 
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
@@ -40,9 +36,7 @@ AEnemy::AEnemy()
 	GetMesh()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
-
-	GetCharacterMovement()->MaxWalkSpeed = attributes->getPatrollingSpeed();
+	GetCharacterMovement()->MaxWalkSpeed = GetPatrollingSpeed();
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationPitch = false;
@@ -53,6 +47,7 @@ AEnemy::AEnemy()
 /*
 * Init methods 
 */
+
 void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
@@ -60,7 +55,7 @@ void AEnemy::BeginPlay()
 	InitHealthBar();
 	InitAI();
 	InitDeathMembers();
-	EquipWeapon();
+	SpawnAndEquipWeapon();
 }
 
 void AEnemy::InitHealthBar()
@@ -89,7 +84,7 @@ void AEnemy::InitDeathMembers()
 		deathPetals->Deactivate();
 }
 
-void AEnemy::EquipWeapon()
+void AEnemy::SpawnAndEquipWeapon()
 {
 	if (GetWorld() && weaponClass)
 	{
@@ -104,7 +99,6 @@ void AEnemy::Destroyed()
 	if (weapon)
 		weapon->Destroy();
 }
-
 
 /*
 * GetHit 
@@ -131,34 +125,18 @@ void AEnemy::PlayHitAnimationBasedOnHitPoint(const FVector& hitPoint)
 	PlayMontage(hitMontage, directionName);
 }
 
-void AEnemy::PlayHitSoundAtLocation(const FVector& location)
-{
-	if (hitSound) UGameplayStatics::PlaySoundAtLocation(this, hitSound, location);
-}
-
-void AEnemy::PlayHitParticlesAtLocation(const FVector& location)
-{
-	if (hitVFX) UGameplayStatics::SpawnEmitterAtLocation(this, hitVFX, location);
-}
-
-
 /*
 * Die
 */
 
 void AEnemy::Die()
 {
-	if (IsTerminal())
+	if (IsTerminal())		// Terminal state is needed to allow multiple hits after death
 	{
 		HideHealthBar();
-
 		GetWorldTimerManager().ClearAllTimersForObject(this);
-
 		StopAIController();
-		SetActorTickEnabled(false);
-
 		DisableCollisionsForPawn();
-
 		FadeOut();
 
 		EnemyState = EEnemyState::EES_Dead;
@@ -194,22 +172,6 @@ int16 AEnemy::PlayDeathMontage()
 	return PlayedDeathIndex;
 }
 
-
-EDeathPose AEnemy::GetDeathPose(int8 inDeathIndex)
-{
-	switch (inDeathIndex)
-	{
-	case(0):
-		return EDeathPose::EDP_Dead1;
-	case(1):
-		return EDeathPose::EDP_Dead2;
-	case(2):
-		return EDeathPose::EDP_Dead3;
-	default:
-		return EDeathPose::EDP_Dead1;
-	}
-}
-
 void AEnemy::FadeOut()
 {
 	if (GetMesh()) GetMesh()->SetMaterial(0, ditheringMaterial);
@@ -238,7 +200,6 @@ void AEnemy::ActivateDeathPetalsAnim()
 		deathPetals->Activate(true);
 }
 
-
 /*
 * Take damage
 */
@@ -264,7 +225,7 @@ void AEnemy::ActuallyReceiveDamage(float DamageAmount)
 {
 	attributes->takeDamage(DamageAmount);
 
-	if (!HasSomeHealthRemaining() && !IsDying()) 
+	if (!HasSomeHealthRemaining() && !IsDead() && !IsTerminal())
 		EnemyState = EEnemyState::EES_Terminal;
 }
 
@@ -284,7 +245,6 @@ bool AEnemy::IsAwareOfCharacter()
 	return EnemyState > EEnemyState::EES_Patrolling;
 }
 
-
 /* 
 * Tick
 */
@@ -293,14 +253,13 @@ void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (IsDying()) return;
+	if (IsTerminal() || IsDead()) return;
 
 	if (IsPatrolling())
 		CheckPatrol();
 	else
 		CheckCombat();
 }
-
 
 /*
 * Combat: Pawn seen
@@ -337,6 +296,10 @@ void AEnemy::ClearPatrolTimer()
 	GetWorldTimerManager().ClearTimer(patrolTimer);
 }
 
+void AEnemy::SetCombatTarget(AActor* target)
+{
+	combatTarget = target;
+}
 
 /*
 * Combat: main logic
@@ -346,12 +309,12 @@ void AEnemy::CheckCombat()
 {
 	// This system of chasing/attacking/interest-loosing is designed as 2 concentric circles, defining attackRadius the smallast one, and combatRadius the biggest one.
 
-	if (IsCharacterOutOfRange() && !IsEngaged())
+	if (ShouldLoseInterest())
 	{
 		ClearAttackTimer();
-		HideHealthBar();
 
 		LoseInterest();
+		KeepPatrolling();
 	}
 	else if (ShouldChaseCurrentTarget())
 	{
@@ -367,6 +330,11 @@ void AEnemy::CheckCombat()
 
 		SetAttackTimer();
 	}
+}
+
+bool AEnemy::ShouldLoseInterest()
+{
+	return IsCharacterOutOfRange() && !IsEngaged();
 }
 
 bool AEnemy::IsCharacterOutOfRange()
@@ -392,12 +360,18 @@ void AEnemy::ClearAttackTimer()
 void AEnemy::LoseInterest()
 {
 	combatTarget = nullptr;
+	HideHealthBar();
+}
+
+void AEnemy::KeepPatrolling()
+{
 	ResetFocalPoint();
 
 	EnemyState = EEnemyState::EES_Patrolling;
-	GetCharacterMovement()->MaxWalkSpeed = attributes->getPatrollingSpeed();
+	GetCharacterMovement()->MaxWalkSpeed = GetPatrollingSpeed();
 	moveToTarget(currentPatrolTarget);
 }
+
 
 bool AEnemy::ShouldChaseCurrentTarget()
 {
@@ -407,8 +381,13 @@ bool AEnemy::ShouldChaseCurrentTarget()
 void AEnemy::ChaseCurrentTarget()
 {
 	EnemyState = EEnemyState::EES_Chasing;
-	GetCharacterMovement()->MaxWalkSpeed = attributes->getChasingSpeed();
+	GetCharacterMovement()->MaxWalkSpeed = GetChasingSpeed();
 	moveToTarget(combatTarget, attackRadius - 110.f);
+}
+
+bool AEnemy::CanAttack()
+{
+	return IsCharacterInsideAttackRange() && !IsTerminal() && !IsAttacking() && !IsEngaged();
 }
 
 void AEnemy::SetAttackTimer()
@@ -492,75 +471,18 @@ void AEnemy::MoveToNextPatrolTargetAfterSeconds(float seconds)
 	GetWorldTimerManager().SetTimer<AEnemy>(patrolTimer, this, &AEnemy::MoveToPatrolTarget, seconds);
 }
 
-
-/*
-* General common methods
-*/
-
-void AEnemy::SetCombatTarget(AActor* target)
-{
-	combatTarget = target;
-}
-
-void AEnemy::SetFocalPointToActor(AActor* actor)
-{
-	if (!aiController) return;
-
-	if (actor)
-	{
-		GetCharacterMovement()->bOrientRotationToMovement = false;
-		GetCharacterMovement()->bUseControllerDesiredRotation = true;
-		aiController->SetFocus(actor);
-	}
-}
-
-void AEnemy::ResetFocalPoint()
-{
-	if (!aiController) return;
-
-	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->bUseControllerDesiredRotation = false;
-	aiController->ClearFocus(EAIFocusPriority::Gameplay);
-}
-
-bool AEnemy::isActorWithinRadius(AActor* actor, float radius)
-{
-	if (actor == nullptr) return false;
-
-	FVector actorLocation = actor->GetActorLocation();
-	FVector selfLocation = GetActorLocation();
-
-	if (FMath::IsNearlyEqual(actorLocation.X, selfLocation.X) &&
-		FMath::IsNearlyEqual(actorLocation.Y, selfLocation.Y) &&
-		FMath::IsNearlyEqual(actorLocation.Z, selfLocation.Z))
-		return true;
-
-	return (actor->GetActorLocation() - GetActorLocation()).Size() <= radius;
-}
-
-void AEnemy::moveToTarget(const AActor* target, float acceptanceRadius)
-{
-	if (!CanMoveToTarget(target)) return;
-
-	FAIMoveRequest moveRequest;
-	moveRequest.SetGoalActor(target);
-	moveRequest.SetAcceptanceRadius(acceptanceRadius);
-	aiController->MoveTo(moveRequest);
-}
-
-bool AEnemy::CanMoveToTarget(const AActor* target)
-{
-	return target != nullptr && aiController != nullptr;
-}
-
 void AEnemy::MoveToPatrolTarget()
 {
 	moveToTarget(currentPatrolTarget);
 }
 
-bool AEnemy::CanAttack()
+/*
+* General common methods
+*/
+
+bool AEnemy::IsAlive()
 {
-	return IsCharacterInsideAttackRange() && !IsTerminal() && !IsAttacking() && !IsEngaged();
+	return EnemyState > EEnemyState::EES_Terminal;
 }
 
 bool AEnemy::IsDead()
@@ -568,19 +490,9 @@ bool AEnemy::IsDead()
 	return EnemyState == EEnemyState::EES_Dead;
 }
 
-bool AEnemy::IsAlive()
-{
-	return EnemyState > EEnemyState::EES_Terminal;
-}
-
 bool AEnemy::IsTerminal()
 {
 	return EnemyState == EEnemyState::EES_Terminal;
-}
-
-bool AEnemy::IsDying()
-{
-	return EnemyState <= EEnemyState::EES_Terminal;
 }
 
 bool AEnemy::IsPatrolling()
@@ -611,4 +523,65 @@ void AEnemy::ShowHealthBar()
 void AEnemy::HideHealthBar()
 {
 	if (healthBar) healthBar->SetVisibility(false);
+}
+
+void AEnemy::SetFocalPointToActor(AActor* actor)
+{
+	if (!aiController) return;
+
+	if (actor)
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
+		aiController->SetFocus(actor);
+	}
+}
+
+void AEnemy::ResetFocalPoint()
+{
+	if (!aiController) return;
+
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	aiController->ClearFocus(EAIFocusPriority::Gameplay);
+}
+
+void AEnemy::moveToTarget(const AActor* target, float acceptanceRadius)
+{
+	if (!CanMoveToTarget(target)) return;
+
+	FAIMoveRequest moveRequest;
+	moveRequest.SetGoalActor(target);
+	moveRequest.SetAcceptanceRadius(acceptanceRadius);
+	aiController->MoveTo(moveRequest);
+}
+
+bool AEnemy::CanMoveToTarget(const AActor* target)
+{
+	return target != nullptr && aiController != nullptr;
+}
+
+float AEnemy::GetPatrollingSpeed()
+{
+	return attributes->GetWalkingSpeedEquipped();
+}
+
+float AEnemy::GetChasingSpeed()
+{
+	return attributes->GetRunningSpeedEquipped();
+}
+
+bool AEnemy::isActorWithinRadius(AActor* actor, float radius)
+{
+	if (actor == nullptr) return false;
+
+	FVector actorLocation = actor->GetActorLocation();
+	FVector selfLocation = GetActorLocation();
+
+	if (FMath::IsNearlyEqual(actorLocation.X, selfLocation.X) &&
+		FMath::IsNearlyEqual(actorLocation.Y, selfLocation.Y) &&
+		FMath::IsNearlyEqual(actorLocation.Z, selfLocation.Z))
+		return true;
+
+	return (actor->GetActorLocation() - GetActorLocation()).Size() <= radius;
 }

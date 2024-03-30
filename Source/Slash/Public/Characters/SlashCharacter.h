@@ -28,15 +28,39 @@ public:
 
 	ASlashCharacter();
 
-	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
+
 	virtual void BeginPlay() override;
 
-	/*
-	* Input
+	/**
+	* Methods
 	*/
+
+	/** <ABaseCharacter> */
+	virtual bool CanAttack() override;
+	virtual void Attack() override;
+	virtual void AttackEnd() override;
+	/** </ABaseCharacter> */
+
+	/** Input callbacks */
+	void move(const FInputActionValue& value);
+	void look(const FInputActionValue& value);
+	void equip();
+	void toggleWalk();
+
+	/** State */
+
+	void updateMaxGroundSpeed();
+	
+	/*
+	* Variables
+	*/
+
+	bool bWalking;
+
+	/** Input */
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputMappingContext> echoMappingContext;
@@ -59,47 +83,31 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputAction> attackAction;
 
-	/*
-	* Callbacks for input
-	*/
-	void move(const FInputActionValue& value);
-	void moveEnd(const FInputActionValue& value);
-	void look(const FInputActionValue& value);
-
-	void equip();
-
-	void toggleWalk();
-
-	/*
-	* State
-	*/
-	bool bWalking;
-	void updateMaxGroundSpeed();
-
-	/*
-	* Attack
-	*/
-
-	virtual bool CanAttack() override;
-
-	virtual void Attack() override;
-
-	virtual void AttackEnd() override;
 
 private:
 
-	/*
-	* State
+	/**
+	* Methods 
 	*/
 
-	ECharacterState state = ECharacterState::ECS_Unequipped;
+	/** Initialization */
+
+	void InitCameraController();
+	void InitMappingContext();
+
+	/** 
+	* Variables
+	*/
+
+	/** State */
+
+	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
+	EActionState ActionState = EActionState::EAS_Unoccupied;
 
 	UPROPERTY(VisibleInstanceOnly)
 	TObjectPtr<AItem> overlappingItem;
 
-	/*
-	* Components
-	*/
+	/** Components */
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USpringArmComponent> springArm;
@@ -115,14 +123,12 @@ private:
 
 public:
 
-	/*
-	* Getters and setters
-	*/
+	/** Getters and setters */
 
 	FORCEINLINE void setOverlappingItem(AItem* item) { overlappingItem = item; }
 
-	FORCEINLINE ECharacterState getCharacterState() const { return state; }
+	FORCEINLINE ECharacterState getCharacterState() const { return CharacterState; }
 
-	FORCEINLINE EActionState getCharacterActionState() const { return actionState; }
+	FORCEINLINE EActionState getCharacterActionState() const { return ActionState; }
 
 };

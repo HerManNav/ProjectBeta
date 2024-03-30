@@ -31,10 +31,16 @@ private:
 	float maxHealth = 100.f;
 
 	UPROPERTY(EditAnywhere, Category = Movement)
-	float walkingSpeed = 125.f;
+	float WalkingSpeedUnequipped = 200.f;
 
 	UPROPERTY(EditAnywhere, Category = Movement)
-	float runningSpeed = 300.f;
+	float RunningSpeedUnequipped = 400.f;
+
+	UPROPERTY(EditAnywhere, Category = Movement)
+	float WalkingSpeedEquipped = 125.f;
+
+	UPROPERTY(EditAnywhere, Category = Movement)
+	float RunningSpeedEquipped = 300.f;
 
 public:
 
@@ -50,8 +56,12 @@ public:
 
 	float getHealthPercent() { return health / maxHealth; }
 
-	float getPatrollingSpeed() { return walkingSpeed; }
+	float GetWalkingSpeedUnequipped() { return WalkingSpeedUnequipped; }
 
-	float getChasingSpeed() { return runningSpeed; }
+	float GetRunningSpeedUnequipped() { return RunningSpeedUnequipped; }
+
+	float GetWalkingSpeedEquipped() { return WalkingSpeedEquipped; }
+
+	float GetRunningSpeedEquipped() { return RunningSpeedEquipped; }
 
 };
