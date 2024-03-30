@@ -25,7 +25,6 @@ public:
 
 	ABird();
 
-	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
@@ -35,34 +34,34 @@ protected:
 protected:
 
 	// OLD SYSTEM: axis and actions mappings
-	void moveForward(float value);
-	void lookRightAndLeft(float value);
-	void lookUpAndDown(float value);
+	void MoveForward(float Value);
+	void LookRightAndLeft(float Value);
+	void LookUpAndDown(float Value);
 
 	// NEW SYSTEM: enhanced input
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UInputMappingContext* birdMappingContext;
+	UInputMappingContext* BirdMappingContext;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UInputAction* moveAction;
+	UInputAction* MoveAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UInputAction* lookAction;
+	UInputAction* LookAction;
 
-	void move(const FInputActionValue& value);
-	void look(const FInputActionValue& value);
+	void Move(const FInputActionValue& value);
+	void Look(const FInputActionValue& value);
 
 private:
 
 	UPROPERTY(VisibleAnywhere)
-	UCapsuleComponent* capsule;
+	UCapsuleComponent* Capsule;
 
 	UPROPERTY(VisibleAnywhere)
-	USkeletalMeshComponent* mesh;
+	USkeletalMeshComponent* Mesh;
 
 	UPROPERTY(VisibleAnywhere)
-	USpringArmComponent* springArm;
+	USpringArmComponent* SpringArm;
 
 	UPROPERTY(VisibleAnywhere)
-	UCameraComponent* viewCamera;
+	UCameraComponent* ViewCamera;
 };

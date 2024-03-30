@@ -10,19 +10,19 @@ void USlashAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	slashCharacter = Cast<ASlashCharacter>(TryGetPawnOwner());
-	if (slashCharacter)
-		slashCharacterMovement = slashCharacter->GetCharacterMovement();
+	SlashCharacter = Cast<ASlashCharacter>(TryGetPawnOwner());
+	if (SlashCharacter)
+		SlashCharacterMovement = SlashCharacter->GetCharacterMovement();
 }
 
-void USlashAnimInstance::NativeUpdateAnimation(float deltaTime)
+void USlashAnimInstance::NativeUpdateAnimation(float DeltaTime)
 {
-	Super::NativeUpdateAnimation(deltaTime);
+	Super::NativeUpdateAnimation(DeltaTime);
 
-	if (slashCharacterMovement)
+	if (SlashCharacterMovement)
 	{
-		groundSpeed = UKismetMathLibrary::VSizeXY(slashCharacterMovement->Velocity);	// groundSpeed = slashCharacter->GetVelocity().Length();	// This would work for our case but will get the speed in the 3 axis, not only in the xy
-		bIsFalling = slashCharacterMovement->IsFalling();
-		characterState = slashCharacter->getCharacterState();
+		GroundSpeed = UKismetMathLibrary::VSizeXY(SlashCharacterMovement->Velocity);	// groundSpeed = slashCharacter->GetVelocity().Length();	// This would work for our case but will get the speed in the 3 axis, not only in the xy
+		bIsFalling = SlashCharacterMovement->IsFalling();
+		CharacterState = SlashCharacter->GetCharacterState();
 	}
 }

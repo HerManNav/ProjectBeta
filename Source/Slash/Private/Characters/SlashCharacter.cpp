@@ -3,17 +3,15 @@
 
 #include "Characters/SlashCharacter.h"
 #include "Items/Weapons/Weapon.h"
+#include "Components/AttributesComponent.h"
+
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
-#include "Components/InputComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "GroomComponent.h"
 
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
-
-#include "GroomComponent.h"
-
-#include "Components/AttributesComponent.h"
 
 ASlashCharacter::ASlashCharacter()
 {
@@ -29,20 +27,20 @@ ASlashCharacter::ASlashCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f);
 
 	// Components
-	springArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("springArm"));
-	springArm->SetupAttachment(GetRootComponent());
-	springArm->TargetArmLength = 300.f;
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->SetupAttachment(GetRootComponent());
+	SpringArm->TargetArmLength = 300.f;
 
-	viewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("viewCamera"));
-	viewCamera->SetupAttachment(springArm);
+	ViewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ViewCamera"));
+	ViewCamera->SetupAttachment(SpringArm);
 
-	hair = CreateDefaultSubobject<UGroomComponent>(TEXT("hair"));
-	hair->SetupAttachment(GetMesh());
-	hair->AttachmentName = FString("head");
+	Hair = CreateDefaultSubobject<UGroomComponent>(TEXT("Hair"));
+	Hair->SetupAttachment(GetMesh());
+	Hair->AttachmentName = FString("head");
 
-	eyebrows = CreateDefaultSubobject<UGroomComponent>(TEXT("eyebrows"));
-	eyebrows->SetupAttachment(GetMesh());
-	eyebrows->AttachmentName = FString("head");
+	Eyebrows = CreateDefaultSubobject<UGroomComponent>(TEXT("Eyebrows"));
+	Eyebrows->SetupAttachment(GetMesh());
+	Eyebrows->AttachmentName = FString("head");
 }
 
 void ASlashCharacter::BeginPlay()
@@ -51,125 +49,137 @@ void ASlashCharacter::BeginPlay()
 
 	Tags.Add(FName("SlashCharacter"));
 
-	// Place camera
-	FRotator controllerRotation = GetController()->GetControlRotation();
-	controllerRotation.Pitch += -20.f;
-
-	GetController()->SetControlRotation(controllerRotation);		// Couldn't do this in the constructor because the Controller is not yet initialized there!
-
-	// Initialize character's mapping context for key bindings
-	if (APlayerController* playerController = Cast<APlayerController>(GetController()))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(playerController->GetLocalPlayer()))
-		{
-			subsystem->AddMappingContext(echoMappingContext, 0);
-		}
-	}
+	InitCameraController();
+	InitMappingContext();
 }
 
-void ASlashCharacter::Tick(float DeltaTime)
+void ASlashCharacter::InitCameraController()
 {
-	Super::Tick(DeltaTime);
+	FRotator ControllerRotation = GetController()->GetControlRotation();
+	ControllerRotation.Pitch += -20.f;
+
+	GetController()->SetControlRotation(ControllerRotation);		// Couldn't do this in the constructor because the Controller is not yet initialized there!
+}
+
+void ASlashCharacter::InitMappingContext()
+{
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(EchoMappingContext, 0);
+		}
+	}
 }
 
 void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	if (UEnhancedInputComponent* enhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		enhancedInputComponent->BindAction(moveAction, ETriggerEvent::Triggered, this, &ASlashCharacter::move);
-		enhancedInputComponent->BindAction(moveAction, ETriggerEvent::Completed, this, &ASlashCharacter::moveEnd);
-		enhancedInputComponent->BindAction(jumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASlashCharacter::Move);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASlashCharacter::Look);
+		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Completed, this, &ASlashCharacter::Equip);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &ASlashCharacter::Attack);
 
-		enhancedInputComponent->BindAction(toggleWalkAction, ETriggerEvent::Completed, this, &ASlashCharacter::toggleWalk);
+		EnhancedInputComponent->BindAction(ToggleWalkAction, ETriggerEvent::Completed, this, &ASlashCharacter::ToggleWalk);
 
-		enhancedInputComponent->BindAction(lookAction, ETriggerEvent::Triggered, this, &ASlashCharacter::look);
-		enhancedInputComponent->BindAction(equipAction, ETriggerEvent::Completed, this, &ASlashCharacter::equip);
-		enhancedInputComponent->BindAction(attackAction, ETriggerEvent::Completed, this, &ASlashCharacter::attack);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 	}
 }
 
-void ASlashCharacter::move(const FInputActionValue& value)
+void ASlashCharacter::Move(const FInputActionValue& Value)
 {	
-	if (actionState == EActionState::EAS_Attacking) return;
+	if (ActionState == EActionState::EAS_Attacking) return;
 
-	const FVector2D amount = value.Get<FVector2D>();
+	const FVector2D Amount = Value.Get<FVector2D>();
 	if (Controller)
 	{
-		const FVector forwardDirection = FVector::CrossProduct(viewCamera->GetRightVector(), FVector::UpVector);
-		const FVector rightDirection = viewCamera->GetRightVector();
-		AddMovementInput(forwardDirection, amount.X);
-		AddMovementInput(rightDirection, amount.Y);
+		const FVector forwardDirection = FVector::CrossProduct(ViewCamera->GetRightVector(), FVector::UpVector);
+		const FVector rightDirection = ViewCamera->GetRightVector();
+		AddMovementInput(forwardDirection, Amount.X);
+		AddMovementInput(rightDirection, Amount.Y);
 
 		// This is the solution presented by Stephen (the result is the same). I like my solution (this one's maybe better in terms of performance)
 		/*const FRotator ControlRotation = GetControlRotation();
 		const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
 
 		const FVector forwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(forwardDirection, amount.X);
+		AddMovementInput(forwardDirection, Amount.X);
 
 		const FVector rightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		AddMovementInput(rightDirection, amount.Y);*/
+		AddMovementInput(rightDirection, Amount.Y);*/
 	}
 }
 
-void ASlashCharacter::moveEnd(const FInputActionValue& value)
+void ASlashCharacter::Look(const FInputActionValue& Value)
 {
-	// ToDo: intended to use for adding some sliding after releasing the forward key ('w'), while playing the jog_to_idle animation in the abp
-}
-
-void ASlashCharacter::look(const FInputActionValue& value)
-{
-	const FVector2D amount = value.Get<FVector2D>();
+	const FVector2D Amount = Value.Get<FVector2D>();
 	if (Controller)
 	{
-		AddControllerYawInput(amount.X);
-		AddControllerPitchInput(amount.Y);
-		//viewCamera->AddLocalRotation(FRotator(amount.Y, amount.X, 0.f));		// This would move only the camera, not the whole bunch of components
+		AddControllerYawInput(Amount.X);
+		AddControllerPitchInput(Amount.Y);
+		//viewCamera->AddLocalRotation(FRotator(Amount.Y, Amount.X, 0.f));		// This would move only the camera, not the whole bunch of components
 	}
 }
 
-void ASlashCharacter::equip()
+void ASlashCharacter::Equip()
 {
-	 TObjectPtr<AWeapon> weaponToEquip = Cast<AWeapon>(overlappingItem);
-	 if (weaponToEquip)
+	 TObjectPtr<AWeapon> WeaponToEquip = Cast<AWeapon>(OverlappingItem);
+	 if (WeaponToEquip)
 	 {
-		 weaponToEquip->Equip(this->GetMesh(), FName("socket_rightHand"), this, this);
-		 weapon = weaponToEquip;
+		 WeaponToEquip->Equip(this->GetMesh(), FName("socket_rightHand"), this, this);
+		 Weapon = WeaponToEquip;
 
-		 state = ECharacterState::ECS_EquippedOneHandedWeapon;
+		 CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
 
-		 updateMaxGroundSpeed();
+		 UpdateMaxGroundSpeed();
 	 }
 }
 
-bool ASlashCharacter::canAttack()
+bool ASlashCharacter::CanAttack()
 {
-	return	state != ECharacterState::ECS_Unequipped &&
-			actionState == EActionState::EAS_Unoccupied;
+	return	CharacterState != ECharacterState::ECS_Unequipped &&
+			ActionState == EActionState::EAS_Unoccupied;
 }
 
-void ASlashCharacter::toggleWalk()
+void ASlashCharacter::Attack()
+{
+	Super::Attack();
+
+	if (CanAttack())
+	{
+		if (PlayAttackingMontage() != -1)
+			ActionState = EActionState::EAS_Attacking;
+	}
+}
+
+void ASlashCharacter::AttackEnd()
+{
+	ActionState = EActionState::EAS_Unoccupied;
+}
+
+void ASlashCharacter::ToggleWalk()
 {
 	bWalking = !bWalking;
 
-	updateMaxGroundSpeed();
+	UpdateMaxGroundSpeed();
 }
 
-void ASlashCharacter::updateMaxGroundSpeed()
+void ASlashCharacter::UpdateMaxGroundSpeed()
 {
 	if (bWalking)
 	{
-		if (state == ECharacterState::ECS_Unequipped)
-			GetCharacterMovement()->MaxWalkSpeed = 200.f;
+		if (CharacterState == ECharacterState::ECS_Unequipped)
+			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetWalkingSpeedUnequipped();
 		else
-			GetCharacterMovement()->MaxWalkSpeed = 115.f;
+			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetWalkingSpeedEquipped();
 	}
 	else {
-		if (state == ECharacterState::ECS_Unequipped)
-			GetCharacterMovement()->MaxWalkSpeed = 400.f;
+		if (CharacterState == ECharacterState::ECS_Unequipped)
+			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetRunningSpeedUnequipped();
 		else
-			GetCharacterMovement()->MaxWalkSpeed = 260.f;
+			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetRunningSpeedEquipped();
 	}
 }

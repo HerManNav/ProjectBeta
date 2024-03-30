@@ -20,12 +20,12 @@ public:
 
 	void NativeInitializeAnimation() override;
 	
-	void NativeThreadSafeUpdateAnimation(float deltaSeconds) override;
+	void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
 
 	UPROPERTY()
-	TObjectPtr<AEnemy> enemy;
+	TObjectPtr<AEnemy> Enemy;
 
 	UPROPERTY(BlueprintReadWrite, Category = Movement)
-	float groundSpeed;
+	float GroundSpeed;
 
 };

@@ -13,71 +13,71 @@ ABreakableActor::ABreakableActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	geometryCollection = CreateDefaultSubobject<UGeometryCollectionComponent>(TEXT("geometryCollection"));
-	SetRootComponent(geometryCollection);
+	GeometryCollection = CreateDefaultSubobject<UGeometryCollectionComponent>(TEXT("GeometryCollection"));
+	SetRootComponent(GeometryCollection);
 
-	geometryCollection->SetGenerateOverlapEvents(true);
-	geometryCollection->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
-	geometryCollection->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	GeometryCollection->SetGenerateOverlapEvents(true);
+	GeometryCollection->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GeometryCollection->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 
-	collisionCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("collisionCapsule"));
-	collisionCapsule->SetupAttachment(RootComponent);
+	CollisionCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CollisionCapsule"));
+	CollisionCapsule->SetupAttachment(RootComponent);
 
-	collisionCapsule->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
-	collisionCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	CollisionCapsule->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+	CollisionCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
-	onChaosBreakEvent_processed = false;
+	bProcessedOnChaosBreakEvent = false;
 }
 
 void ABreakableActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	geometryCollection->SetNotifyBreaks(true);
-	geometryCollection->OnChaosBreakEvent.AddDynamic(this, &ABreakableActor::onChaosBreakEvent);
+	GeometryCollection->SetNotifyBreaks(true);
+	GeometryCollection->OnChaosBreakEvent.AddDynamic(this, &ABreakableActor::OnChaosBreakEvent);
 }
 
-void ABreakableActor::onChaosBreakEvent(const FChaosBreakEvent& breakEvent)
+void ABreakableActor::OnChaosBreakEvent(const FChaosBreakEvent& BreakEvent)
 {
-	if (!onChaosBreakEvent_processed)
+	if (!bProcessedOnChaosBreakEvent)
 	{
 		SetLifeSpan(30.0f);
 		
-		if (breakingSound)
-			UGameplayStatics::PlaySoundAtLocation(this, breakingSound, GetActorLocation());
+		if (BreakingSound)
+			UGameplayStatics::PlaySoundAtLocation(this, BreakingSound, GetActorLocation());
 
-		spawnRandomTreasure(breakEvent.Location);
+		spawnRandomTreasure(BreakEvent.Location);
 
-		collisionCapsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		CollisionCapsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-		onChaosBreakEvent_processed = true;
+		bProcessedOnChaosBreakEvent = true;
 	}
 }
 
-void ABreakableActor::spawnRandomTreasure(const FVector& location)
+void ABreakableActor::spawnRandomTreasure(const FVector& Location)
 {
 	// Spawn ATreasure actor
-	if (GetWorld() && classesToSpawn.Num() > 0)
+	if (GetWorld() && ClassesToSpawn.Num() > 0)
 	{
-		FActorSpawnParameters spawnParams;
-		spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		const uint8 treasureIndex = FMath::RandRange(0, classesToSpawn.Num() - 1);
-		spawnedTreasure = GetWorld()->SpawnActor<ATreasure>(classesToSpawn[treasureIndex],
-															FVector(location.X, location.Y, 75.f),
+		const uint8 TreasureIndex = FMath::RandRange(0, ClassesToSpawn.Num() - 1);
+		SpawnedTreasure = GetWorld()->SpawnActor<ATreasure>(ClassesToSpawn[TreasureIndex],
+															FVector(Location.X, Location.Y, 75.f),
 															FRotator(0.f, 0.f, 0.f),
-															spawnParams);
+															SpawnParams);
 
 
 		// Delay for the player to know there was actually a treasure and only after let the player to grab the treasure 
 		FTimerDelegate delegate;
-		delegate.BindLambda([&]() { spawnedTreasure->setGenerateOverlapEvents(true); });
+		delegate.BindLambda([&]() { SpawnedTreasure->SetGenerateOverlapEvents(true); });
 		FTimerHandle timerHandler;
 		GetWorldTimerManager().SetTimer(timerHandler, delegate, 0.2f, false);
 	}
 }
 
-void ABreakableActor::getHit_Implementation(const FVector& hitPoint)
+void ABreakableActor::GetHit_Implementation(const FVector& hitPoint)
 {
 	// I've moved this logic to onChaosBreakEvent(...)
 }

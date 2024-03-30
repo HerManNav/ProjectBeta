@@ -6,11 +6,11 @@
 
 void UEnemyAnimInstance::NativeInitializeAnimation()
 {
-	enemy = Cast<AEnemy>(TryGetPawnOwner());
+	Enemy = Cast<AEnemy>(TryGetPawnOwner());
 }
 
 void UEnemyAnimInstance::NativeThreadSafeUpdateAnimation(float deltaSeconds)
 {
-	if (enemy)
-		groundSpeed = enemy->GetVelocity().Size2D();
+	if (Enemy)
+		GroundSpeed = Enemy->GetVelocity().Size2D();
 }

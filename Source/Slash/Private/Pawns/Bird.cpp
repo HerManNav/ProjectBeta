@@ -16,29 +16,23 @@ ABird::ABird()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	capsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("capsule"));
-	capsule->SetCapsuleHalfHeight(20.f);
-	capsule->SetCapsuleRadius(15.f);
-	SetRootComponent(capsule);						// Same as RootComponent = capsule, but safer because RootComponent member could become private in future versions of UE
+	Capsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
+	Capsule->SetCapsuleHalfHeight(20.f);
+	Capsule->SetCapsuleRadius(15.f);
+	SetRootComponent(Capsule);						// Same as RootComponent = capsule, but safer because RootComponent member could become private in future versions of UE
 
-	mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("meshComponent"));
-	mesh->SetupAttachment(GetRootComponent());		// Same as using 'RootComponent' or 'capsule' in the parameter
+	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComponent"));
+	Mesh->SetupAttachment(GetRootComponent());		// Same as using 'RootComponent' or 'capsule' in the parameter
 
-	springArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("springArm"));
-	springArm->SetupAttachment(capsule);			// Same as using 'RootComponent' or 'GetRootComponent()' in the parameter
-	springArm->TargetArmLength = 300.f;
-	springArm->AddLocalRotation(FRotator(-15.f, 0.f, 0.f));
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->SetupAttachment(Capsule);			// Same as using 'RootComponent' or 'GetRootComponent()' in the parameter
+	SpringArm->TargetArmLength = 300.f;
+	SpringArm->AddLocalRotation(FRotator(-15.f, 0.f, 0.f));
 
-	viewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("viewCamera"));
-	viewCamera->SetupAttachment(springArm);
+	ViewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ViewCamera"));
+	ViewCamera->SetupAttachment(SpringArm);
 
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
-}
-
-void ABird::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
 }
 
 // Called to bind functionality to input
@@ -52,10 +46,10 @@ void ABird::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis(FName("LookUpDown"), this, &ABird::lookUpAndDown);*/
 
 	// NEW SYSTEM: enhanced input
-	if (UEnhancedInputComponent* enhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		enhancedInputComponent->BindAction(moveAction, ETriggerEvent::Triggered, this, &ABird::move);
-		enhancedInputComponent->BindAction(lookAction, ETriggerEvent::Triggered, this, &ABird::look);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ABird::Move);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ABird::Look);
 	}
 }
 
@@ -63,52 +57,52 @@ void ABird::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (APlayerController* playerController = Cast<APlayerController>(GetController()))
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(playerController->GetLocalPlayer())) 
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())) 
 		{
-			subsystem->AddMappingContext(birdMappingContext, 0);
+			Subsystem->AddMappingContext(BirdMappingContext, 0);
 		}
 	}
 }
 
 // OLD SYSTEM: axis and actions mappings
-void ABird::moveForward(float value)
+void ABird::MoveForward(float Value)
 {
-	if (Controller && (value != 0.f))	// Check if this pawn is possessed by a controller, otherwise we shouldn't move this pawn.
+	if (Controller && (Value != 0.f))	// Check if this pawn is possessed by a controller, otherwise we shouldn't move this pawn.
 	{
 		FVector	forward = GetActorForwardVector();
-		AddMovementInput(forward, value);
+		AddMovementInput(forward, Value);
 	}
 }
 
-void ABird::lookRightAndLeft(float value)
+void ABird::LookRightAndLeft(float Value)
 {
-	AddControllerYawInput(value);
+	AddControllerYawInput(Value);
 }
 
-void ABird::lookUpAndDown(float value)
+void ABird::LookUpAndDown(float Value)
 {
-	AddControllerPitchInput(value);
+	AddControllerPitchInput(Value);
 }
 
 // NEW SYSTEM: enhanced input
-void ABird::move(const FInputActionValue& value)
+void ABird::Move(const FInputActionValue& Value)
 {
-	const float currentValue = value.Get<float>();
-	if (Controller && currentValue)			// Check if this pawn is possessed by a controller, otherwise we shouldn't move this pawn.
+	const float CurrentValue = Value.Get<float>();
+	if (Controller && CurrentValue)			// Check if this pawn is possessed by a controller, otherwise we shouldn't move this pawn.
 	{
-		UE_LOG(LogTemp, Warning, TEXT("IA_Move triggerred %f!"), currentValue);
+		UE_LOG(LogTemp, Warning, TEXT("IA_Move triggerred %f!"), CurrentValue);
 
 		FVector	forward = GetActorForwardVector();
-		AddMovementInput(forward, currentValue);
+		AddMovementInput(forward, CurrentValue);
 	}
 }
 
-void ABird::look(const FInputActionValue& value)
+void ABird::Look(const FInputActionValue& Value)
 {
-	const FVector2D currentValue = value.Get<FVector2D>();
-	AddControllerYawInput(currentValue.X);		// Don't need to check whether this pawn is possessed by a controller (in the move we wouldn't need it actually: AddMovementInput and AddControllerXXXInput already perform this check inside the function)
-	AddControllerPitchInput(currentValue.Y);
+	const FVector2D CurrentValue = Value.Get<FVector2D>();
+	AddControllerYawInput(CurrentValue.X);		// Don't need to check whether this pawn is possessed by a controller (in the move we wouldn't need it actually: AddMovementInput and AddControllerXXXInput already perform this check inside the function)
+	AddControllerPitchInput(CurrentValue.Y);
 }
 

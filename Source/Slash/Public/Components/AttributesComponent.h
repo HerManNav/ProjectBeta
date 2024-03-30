@@ -25,16 +25,22 @@ protected:
 private:
 
 	UPROPERTY(EditAnywhere, Category = Attributes, meta = (ClampMin = "0"))
-	float health = 100.f;
+	float Health = 100.f;
 
 	UPROPERTY(EditAnywhere, Category = Attributes, meta = (ClampMin = "0"))
-	float maxHealth = 100.f;
+	float MaxHealth = 100.f;
 
 	UPROPERTY(EditAnywhere, Category = Movement)
-	float walkingSpeed = 125.f;
+	float WalkingSpeedUnequipped = 200.f;
 
 	UPROPERTY(EditAnywhere, Category = Movement)
-	float runningSpeed = 300.f;
+	float RunningSpeedUnequipped = 400.f;
+
+	UPROPERTY(EditAnywhere, Category = Movement)
+	float WalkingSpeedEquipped = 125.f;
+
+	UPROPERTY(EditAnywhere, Category = Movement)
+	float RunningSpeedEquipped = 300.f;
 
 public:
 
@@ -42,16 +48,20 @@ public:
 	* Getters and setters
 	*/
 
-	float getMaxHealth() { return maxHealth; }
+	float GetMaxHealth() { return MaxHealth; }
 
-	bool isAlive() { return health > 0.f; }
+	bool IsAlive() { return Health > 0.f; }
 
-	void takeDamage(float damage) { health = FMath::Clamp(health - damage, 0.f, maxHealth); }
+	void TakeDamage(float damage) { Health = FMath::Clamp(Health - damage, 0.f, MaxHealth); }
 
-	float getHealthPercent() { return health / maxHealth; }
+	float getHealthPercent() { return Health / MaxHealth; }
 
-	float getPatrollingSpeed() { return walkingSpeed; }
+	float GetWalkingSpeedUnequipped() { return WalkingSpeedUnequipped; }
 
-	float getChasingSpeed() { return runningSpeed; }
+	float GetRunningSpeedUnequipped() { return RunningSpeedUnequipped; }
+
+	float GetWalkingSpeedEquipped() { return WalkingSpeedEquipped; }
+
+	float GetRunningSpeedEquipped() { return RunningSpeedEquipped; }
 
 };

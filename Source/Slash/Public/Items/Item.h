@@ -67,7 +67,7 @@ protected:
 	UStaticMeshComponent* ItemMesh;
 
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UNiagaraComponent> niagara;
+	TObjectPtr<UNiagaraComponent> Niagara;
 
 private:
 
@@ -80,9 +80,9 @@ public:
 	* Setters, getters and whatnot
 	*/
 
-	void setStaticMesh(UStaticMesh* mesh) { ItemMesh->SetStaticMesh(mesh); }
+	void SetStaticMesh(UStaticMesh* Mesh) { ItemMesh->SetStaticMesh(Mesh); }
 
-	void setGenerateOverlapEvents(bool enable);		// Need to define this in the .cpp because we do stuff with UBoxComponent, which is not included in this .h file!
+	void SetGenerateOverlapEvents(bool Enable);		// Need to define this in the .cpp because we do stuff with UBoxComponent, which is not included in this .h file!
 
 };
 

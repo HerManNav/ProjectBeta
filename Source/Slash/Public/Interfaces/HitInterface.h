@@ -23,6 +23,6 @@ class SLASH_API IHitInterface
 public:
 
 	UFUNCTION(BlueprintNativeEvent)
-	void getHit(const FVector& hitPoint);
+	void GetHit(const FVector& hitPoint);
 
 };

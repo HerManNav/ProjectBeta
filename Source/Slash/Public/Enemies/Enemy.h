@@ -24,143 +24,191 @@ public:
 	AEnemy();
 
 	virtual void Tick(float DeltaTime) override;
-
-	/*
-	* Combat
-	*/
-
-	virtual void getHit_Implementation(const FVector& hitPoint) override;
-
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+	virtual void Destroyed() override;
+
+	/** <IHitInterface> */
+	virtual void GetHit_Implementation(const FVector& HitPoint) override;
+	/** </IHitInterface> */
 
 protected:
 
 	virtual void BeginPlay() override;
 
-	virtual void Destroyed() override;
-
-	/*
-	* Basic components
-	*/
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<UHealthBarComponent> healthBar;
-
-	UPROPERTY(VisibleDefaultsOnly)
-	TObjectPtr<UNiagaraComponent> deathPetals;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UPawnSensingComponent> sensingComponent;
-
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AWeapon> weaponClass;
-
-	/*
-	* State
-	*/
-
-	UPROPERTY(BlueprintReadWrite)
-	ELivingState livingState = ELivingState::ELS_Alive;
+	/** <ABaseCharacter> */
+	virtual bool CanAttack() override;
+	virtual void Attack() override;
+	virtual void AttackEnd() override;
+	virtual void Die() override;
+	virtual int16 PlayDeathMontage() override;
+	/** </ABaseCharacter> */
 
 	UPROPERTY(BlueprintReadOnly)
-	EEnemyState state = EEnemyState::EES_Patrolling;
+	TEnumAsByte<EDeathPose> DeathPose;
+
+	UPROPERTY(BlueprintReadOnly)
+	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
 
 private:
 
-	/*
-	* Combat (AI)
+	/**
+	* Methods
 	*/
 
-	UPROPERTY()
-	TObjectPtr<AActor> combatTarget;
+	/** Initialization */
+	void InitHealthBar();
+	void InitAI();
+	void InitDeathMembers();
+	void SpawnAndEquipWeapon();
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
-	float combatRadius = 1000.f;
+	/** States and general methods */
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
-	float attackRadius = 200.f;
+	bool IsAlive();
+	bool IsDead();
+	bool IsTerminal();
+	bool IsPatrolling();
+	bool IsChasing();
+	bool IsAttacking();
+	bool IsEngaged();
 
-	void combat();
+	void ShowHealthBar();
+	void HideHealthBar();
+
+	void SetFocalPointToActor(AActor* Actor = nullptr);
+	void ResetFocalPoint();
+
+	void MoveToTarget(const AActor* Target, float AcceptanceRadius = 15.f);
+
+	float GetPatrollingSpeed();
+	float GetChasingSpeed();
+
+	/** Combat */
+	void CheckCombat();
+	bool ShouldLoseInterest();
+	bool IsCharacterOutOfRange();
+	bool IsCharacterOutOfAttackRange();
+	bool IsCharacterInsideAttackRange();
+
+	bool IsPawnMainCharacter(APawn* Pawn);
+	bool IsCharacterInsideCombatRange(APawn* Pawn);
+
+	void LoseInterest();
+	void KeepPatrolling();
+	bool ShouldChaseCurrentTarget();
+	void ChaseCurrentTarget();
+	void SetAttackTimer();
+	void ClearAttackTimer();
+	bool CanMoveToTarget(const AActor* Target);
+
+	/** Patrol */
+	void CheckPatrol();
+	bool CanPatrol();
+	bool HasReachedCurrentTarget();
+	AActor* SelectNextPatrolTarget();
+	void MoveToNextPatrolTargetAfterSeconds(float Seconds);
+	void MoveToPatrolTarget();
+	void GetRemainingPatrolPoints(TArray<AActor*>& RemainingPatrolPoints);
+	AActor* GetRandomActorFromArray(const TArray<AActor*>& RemainingPatrolPoints);
+	void ClearPatrolTimer();	
+
+	/** Take Damage */
+	bool CanTakeDamage();
+	void ActuallyReceiveDamage(float DamageAmount);
+	bool HasSomeHealthRemaining();
+	void UpdateHealthBar();
+	bool IsAwareOfCharacter();
+	void SetCombatTarget(AActor* target);
+
+	/** Death */
+	void StopAIController();
+	void DisableCollisionsForPawn();
+	void FadeOut();
+	void DecreaseDitheringOnMaterial();
+	void ActivateDeathPetalsAnim();
+
+	/** Exposed */
 
 	UFUNCTION()
-	void seenPawn(APawn* pawn);
-
-	void setFocalPointToActor(AActor* actor = nullptr);
-	void resetFocalPoint();
-
-	/*
-	* Patrol (AI)
-	*/
-
-	UPROPERTY()
-	TObjectPtr<AAIController> aiController;
-
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = Patrol, meta = (AllowPrivateAccess = true))
-	TObjectPtr<AActor> currentPatrolTarget;
-
-	UPROPERTY(EditInstanceOnly, Category = Patrol)
-	TArray<TObjectPtr<AActor>> patrolPoints;
-
-	UPROPERTY(EditAnywhere)
-	float patrolRadius = 200.f;		// Don't set this below 150! Just to be sure (should be always > (105 + 15 + 1) ; 105 is the variation in AAIController::MoveTo method, +15 i the acceptanceRadius and +1 is just in case for precision errors)
+	void PawnSeen(APawn* Pawn);
 
 	UFUNCTION(BlueprintCallable)
-	void showOrHideHealthBar();
-
-	UFUNCTION(BlueprintCallable)
-	bool isActorWithinRadius(AActor* target, float radius);
-
-	void patrol();
-	AActor* selectNextPatrolTarget();
-	void moveToTarget(const AActor* target, float acceptanceRadius = 15.f);
-
-	FTimerHandle patrolTimer;
-	void finishedTimer();
-
-	/*
-	* Attack
-	*/
-
-	virtual bool canAttack() override;
-
-	/*
-	* Death
-	*/
-
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UMaterialInterface> materialInstanceDynamic;
-
-	UPROPERTY()								// Without this, this object would be considered for the GC, and then deleted in an uncontrolled way. So this prevents it and Unreal won't crash trying to access it after deleted (as it'd happen in fadeOut::decreaseDitheringOnMaterial method)
-	TObjectPtr<UMaterialInstanceDynamic> ditheringMaterial;
-
-	float dithering_startTime;				// Wall-clock time at which the timers for the fade out and deathPetals particles are set (e.g. second 10.f of the simulation)
-	float dithering_initialDelay = 5.f;		// Time before start to fade out
-	float dithering_totalTime = 3.f;		// Total time that takes to complete the fade out
-	float dithering_execRate = 3.f / 100.f; // fadeOut() method is executed every dithering_execRate seconds
-	float dithering_extraTime = 3.f;		// Time before destroying the enemy instance (extra time to let the Niagara effects finish)
-
-	float deathPetals_initialDelay = 3.f;	// Time before start to play the deathPetals particles
-
-	virtual ELivingState getDeathType(int8 deathIndex) override;
-
-	virtual void die() override;
-
-	UPROPERTY(EditAnywhere)
-	int8 deathAnimationAfterDead_index = 1;	// This will trigger an animation for the enemy after die (e.g. 1 = "Death flying back" (see deathMontage) which is the most impressive one when enemy is on the floor)
+	bool IsActorWithinRadius(AActor* Target, float Radius);
 
 	/**
-	* Death fadeout
+	* Variables
 	*/
 
-	void fadeOut();
-	void decreaseDitheringOnMaterial();
-	void activateDeathPetalsAnim();
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UHealthBarComponent> HealthBar;
 
-	FTimerHandle timerHandler_dithering;
-	FTimerHandle timerHandler_deathPetals;
+	UPROPERTY(VisibleDefaultsOnly)
+	TObjectPtr<UNiagaraComponent> DeathPetals;
 
-public:
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UPawnSensingComponent> SensingComponent;
 
-	ELivingState getLivingState() { return livingState; }
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AWeapon> WeaponClass;
+
+	/** Combat (AI) */
+
+	UPROPERTY()
+	TObjectPtr<AActor> CombatTarget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	float CombatRadius = 1000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	float AttackRadius = 200.f;
+
+	/** Patrol (AI) */
+
+	UPROPERTY()
+	TObjectPtr<AAIController> AIController;
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = Patrol, meta = (AllowPrivateAccess = true))
+	TObjectPtr<AActor> CurrentPatrolTarget;
+
+	UPROPERTY(EditInstanceOnly, Category = Patrol)
+	TArray<TObjectPtr<AActor>> PatrolPoints;
+
+	UPROPERTY(EditAnywhere)
+	float PatrolRadius = 200.f;		// Don't set this below 150! Just to be sure (should be always > (105 + 15 + 1) ; 105 is the variation in AAIController::MoveTo method, +15 i the acceptanceRadius and +1 is just in case for precision errors)
+
+	FTimerHandle PatrolTimer;
+
+	/** Attack */
+
+	UPROPERTY(EditAnywhere, Category = "Attack|Timers")
+	float MinAttackWait = 1.f;
+
+	UPROPERTY(EditAnywhere, Category = "Attack|Timers")
+	float MaxAttackWait = 1.4f;
+
+	FTimerHandle AttackTimer;
+
+	/** Death */
+
+	UPROPERTY(EditAnywhere)
+	int8 DeathAnimationAfterDead_index = 1;	// This will trigger an animation for the enemy after die if it gets hit again (e.g. 1 = "Death flying back" (see deathMontage) which is the most impressive one when enemy is on the floor)
+
+	/** Death: Dithering */
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UMaterialInterface> MaterialInstanceDynamic;
+
+	UPROPERTY()								// Without this, this object would be considered for the GC, and then deleted in an uncontrolled way. So this prevents it and Unreal won't crash trying to access it after deleted (as it'd happen in fadeOut::decreaseDitheringOnMaterial method)
+	TObjectPtr<UMaterialInstanceDynamic> DitheringMaterial;
+
+	FTimerHandle TimerHandler_dithering;
+	FTimerHandle TimerHandler_deathPetals;
+
+	float Dithering_startTime;				// Wall-clock time at which the timers for the fade out and DeathPetals particles are set (e.g. second 10.f of the simulation)
+	float Dithering_initialDelay = 5.f;		// Time before start to fade out
+	float Dithering_totalTime = 3.f;		// Total time that takes to complete the fade out
+	float Dithering_execRate = 3.f / 100.f; // fadeOut() method is executed every dithering_execRate seconds
+	float Dithering_extraTime = 3.f;		// Time before destroying the enemy instance (extra time to let the Niagara effects finish)
+
+	float DeathPetals_initialDelay = 3.f;	// Time before start to play the DeathPetals particles
 
 };

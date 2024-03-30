@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/HitInterface.h"
+#include "Components/CapsuleComponent.h"
 #include "CharacterTypes.h"
 
 #include "BaseCharacter.generated.h"
@@ -29,83 +30,88 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	/*
-	* State
+	/**
+	* Methods
 	*/
 
-	EActionState actionState = EActionState::EAS_Unoccupied;
+	/** Attack */
+	virtual void Attack() {};
+	virtual bool CanAttack() { return false; };
+	void ReactToHitBasedOnHitDirection(const FVector& HitPoint);
+	void PlayHitSoundAtLocation(const FVector& Location);
+	void PlayHitParticlesAtLocation(const FVector& Location);
 
-	/*
-	* Attack
-	*/
+	/** Montage */
+	virtual int16 PlayAttackingMontage();
+	virtual int16 PlayDeathMontage();
+	virtual void PlayMontage(UAnimMontage* Montage, FName MontageName);
 
-	virtual void attack();
-	
+	/** Death */
+	virtual void Die() {}
+
+	/** Exposed */
+
 	UFUNCTION(BlueprintCallable)
-	virtual void attackEnd();
-
-	virtual bool canAttack() { return false; }
-
-	virtual void playAttackingMontage();
+	virtual void AttackEnd() {}
 
 	UFUNCTION(BlueprintCallable)
-	virtual void setWeaponCollision(ECollisionEnabled::Type collisionEnabled);
+	virtual void SetWeaponCollision(ECollisionEnabled::Type CollisionEnabled);
 
-	virtual FName getHitDirection(const FVector& hitPoint);
-
-	UPROPERTY(EditAnywhere, Category = "Indices|Attack")
-	int8 attackIndex = -1;								// Use to test specific attack animations (if -1, it is not used and animations will be randomly selected, as designed)
-
-	/*
-	* SFXs and VFXs
+	/**
+	* Variables
 	*/
 
-	UPROPERTY(EditAnywhere, Category = Sound)
-	TObjectPtr<USoundBase> hitSound;
-
-	UPROPERTY(EditAnywhere, Category = Particles)
-	TObjectPtr<UParticleSystem> hitVFX;
-
-	/*
-	* Montages
-	*/
-
-	virtual void playMontage(UAnimMontage* montage, FName montageName);
-
-	UPROPERTY(EditDefaultsOnly, Category = Montages)
-	TObjectPtr<UAnimMontage> attackMontage;
-
-	UPROPERTY(EditDefaultsOnly, Category = Montages)
-	TObjectPtr<UAnimMontage> hitMontage;
-
-	UPROPERTY(EditDefaultsOnly, Category = Montages)
-	TObjectPtr<UAnimMontage> deathMontage;
-
-	/*
-	* Death
-	*/
-
-	virtual int8 playDeathMontage();
-	virtual ELivingState getDeathType(int8 inDeathIndex) { return ELivingState::ELS_Dead1; }
-
-	virtual void die() {}
-
-	UPROPERTY(EditAnywhere, Category = Montages)
-	float frontBackAngle = 20.f;						// Base angle to calculate hit directions
-
-	UPROPERTY(EditAnywhere, Category = "Indices|Montages")
-	int8 deathIndex = -1;								// Use to test specific death animations (if -1, it is not used and animations will be randomly selected, as designed)
-
-	/*
-	* State
-	*/
+	/** State */
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<UAttributesComponent> attributes;
+	TObjectPtr<UAttributesComponent> Attributes;
 
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<AWeapon> weapon;
+	TObjectPtr<AWeapon> Weapon;
 
-public:	
+	/** Attack */
 
+	UPROPERTY(EditAnywhere, Category = "Attack|Indices")
+	int8 AttackIndex = -1;								// Use to test specific attack animations (if -1, it is not used and animations will be randomly selected, as designed)
+
+	UPROPERTY(EditAnywhere, Category = "Death|Indices")
+	int8 DeathIndex = -1;								// Use to test specific death animations (if -1, it is not used and animations will be randomly selected, as designed)
+
+private:
+
+	int16 PlayRandomMontageSection(UAnimMontage* Montage, TArray<FName> MontageSections, int8 SectionIndexDefault = -1);	// If SectionIndexDefault != -1, it won't play a random animation but the indicated one
+	FName GetHitDirection(const FVector& HitPoint);
+
+	/*
+	* Variables
+	*/
+
+	/** Attack */
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	float FrontBackAngle = 20.f;						// Base angle to calculate hit directions
+
+	UPROPERTY(EditAnywhere, Category = "Attack|Effects")
+	TObjectPtr<USoundBase> HitSound;
+
+	UPROPERTY(EditAnywhere, Category = "Attack|Effects")
+	TObjectPtr<UParticleSystem> HitVFX;
+
+	/** Montages */
+
+	UPROPERTY(EditDefaultsOnly, Category = "Montages|Attack")
+	TObjectPtr<UAnimMontage> AttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Montages|Attack")
+	TObjectPtr<UAnimMontage> HitMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Montages|Death")
+	TObjectPtr<UAnimMontage> deathMontage;
+
+	UPROPERTY(EditAnywhere, Category = "Montages|Attack")
+	TArray<FName> AttackMontageSectionNames;
+
+	UPROPERTY(EditAnywhere, Category = "Montages|Death")
+	TArray<FName> DeathMontageSectionNames;
+	
 };

@@ -28,97 +28,107 @@ public:
 
 	ASlashCharacter();
 
-	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
+
 	virtual void BeginPlay() override;
 
-	/*
-	* Input
+	/**
+	* Methods
 	*/
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputMappingContext> echoMappingContext;
+	/** <ABaseCharacter> */
+	virtual bool CanAttack() override;
+	virtual void Attack() override;
+	virtual void AttackEnd() override;
+	/** </ABaseCharacter> */
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputAction> moveAction;
+	/** Input callbacks */
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+	void Equip();
+	void ToggleWalk();
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputAction> lookAction;
+	/** State */
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputAction> jumpAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputAction> toggleWalkAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputAction> equipAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputAction> attackAction;
-
+	void UpdateMaxGroundSpeed();
+	
 	/*
-	* Callbacks for input
+	* Variables
 	*/
-	void move(const FInputActionValue& value);
-	void moveEnd(const FInputActionValue& value);
-	void look(const FInputActionValue& value);
 
-	void equip();
-
-	void toggleWalk();
-
-	/*
-	* State
-	*/
 	bool bWalking;
-	void updateMaxGroundSpeed();
 
-	/*
-	* Attack
-	*/
+	/** Input */
 
-	virtual bool canAttack() override;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<UInputMappingContext> EchoMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<UInputAction> MoveAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<UInputAction> LookAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<UInputAction> JumpAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<UInputAction> ToggleWalkAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<UInputAction> EquipAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<UInputAction> AttackAction;
+
 
 private:
 
-	/*
-	* State
+	/**
+	* Methods 
 	*/
 
-	ECharacterState state = ECharacterState::ECS_Unequipped;
+	/** Initialization */
+
+	void InitCameraController();
+	void InitMappingContext();
+
+	/** 
+	* Variables
+	*/
+
+	/** State */
+
+	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
+	EActionState ActionState = EActionState::EAS_Unoccupied;
 
 	UPROPERTY(VisibleInstanceOnly)
-	TObjectPtr<AItem> overlappingItem;
+	TObjectPtr<AItem> OverlappingItem;
 
-	/*
-	* Components
-	*/
+	/** Components */
 
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<USpringArmComponent> springArm;
+	TObjectPtr<USpringArmComponent> SpringArm;
 
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UCameraComponent> viewCamera;
+	TObjectPtr<UCameraComponent> ViewCamera;
 
 	UPROPERTY(VisibleAnywhere, Category = Hair)
-	TObjectPtr<UGroomComponent> hair;
+	TObjectPtr<UGroomComponent> Hair;
 
 	UPROPERTY(VisibleAnywhere, Category = Hair)
-	TObjectPtr<UGroomComponent> eyebrows;
+	TObjectPtr<UGroomComponent> Eyebrows;
 
 public:
 
-	/*
-	* Getters and setters
-	*/
+	/** Getters and setters */
 
-	FORCEINLINE void setOverlappingItem(AItem* item) { overlappingItem = item; }
+	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
 
-	FORCEINLINE ECharacterState getCharacterState() const { return state; }
+	FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }
 
-	FORCEINLINE EActionState getCharacterActionState() const { return actionState; }
+	FORCEINLINE EActionState GetCharacterActionState() const { return ActionState; }
 
 };

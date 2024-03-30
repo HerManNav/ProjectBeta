@@ -17,10 +17,10 @@ class SLASH_API UHealthBar : public UUserWidget
 protected:
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UProgressBar> healthBar;
+	TObjectPtr<class UProgressBar> HealthBar;
 
 public:
 
-	void setPercentage(float percentage);
+	void SetPercentage(float Percentage);
 
 };
