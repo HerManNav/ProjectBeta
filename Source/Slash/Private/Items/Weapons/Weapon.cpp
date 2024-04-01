@@ -3,12 +3,14 @@
 
 #include "Items/Weapons/Weapon.h"
 #include "Characters/SlashCharacter.h"
-#include "Kismet/GameplayStatics.h"
+#include "Interfaces/HitInterface.h"
+
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "Interfaces/HitInterface.h"
 #include "NiagaraComponent.h"
+
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 AWeapon::AWeapon()
 {
@@ -32,38 +34,21 @@ void AWeapon::BeginPlay()
 	WeaponBox->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnBoxOverlap);
 }
 
-void AWeapon::Equip(USceneComponent* parent, FName socketName, AActor* NewOwner, APawn* NewInstigator)
+void AWeapon::Equip(USceneComponent* Parent, FName SocketName, AActor* NewOwner, APawn* NewInstigator)
 {
 	SetOwner(NewOwner);
 	SetInstigator(NewInstigator);
 
-	AttachToComponentAndSocket(parent, socketName);
+	AttachToComponentAndSocket(Parent, SocketName);
+	PlaySound(EquipSound, GetActorLocation());
+	DisableSphereCollision();
 
 	ItemState = EItemState::EIS_Equipped;
+}
 
-	if (EquipSound)
-		UGameplayStatics::PlaySoundAtLocation(this, EquipSound,	GetActorLocation());
-
-	if (Sphere)
-		Sphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
+void AWeapon::DeactivateNiagara()
+{
 	Niagara->Deactivate();
-}
-
-void AWeapon::AttachToComponentAndSocket(USceneComponent* InParent, const FName& InSocketName)
-{
-	FAttachmentTransformRules TransformRules(EAttachmentRule::SnapToTarget, true);
-	GetRootComponent()->AttachToComponent(InParent, TransformRules, InSocketName);
-}
-
-void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	Super::OnSphereOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
-}
-
-void AWeapon::OnSphereOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	Super::OnSphereOverlapEnd(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
 }
 
 void AWeapon::SetBoxCollision(ECollisionEnabled::Type CollisionEnabled)
@@ -73,35 +58,54 @@ void AWeapon::SetBoxCollision(ECollisionEnabled::Type CollisionEnabled)
 
 void AWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	const FVector Start = BoxTraceStart->GetComponentLocation();
-	const FVector End = BoxTraceEnd->GetComponentLocation();
-
-	ActorsToIgnore.Add(this);
-
 	FHitResult BoxHit;
-	UKismetSystemLibrary::BoxTraceSingle(	this,
-											Start, End, FVector(5.f, 5.f, 5.f), BoxTraceStart->GetComponentRotation(),
-											ETraceTypeQuery::TraceTypeQuery1, false,
-											ActorsToIgnore,
-											EDrawDebugTrace::None,
-											BoxHit, 
-											true);
+	PerformBoxTrace(BoxHit);
 
-	if (BoxHit.bBlockingHit)	// would be better boxHit.GetActor() ? (seems that the result is the same)
+	if (BoxHit.bBlockingHit)	// Same than boxHit.GetActor()
 	{
-		// 1st. Apply damage: this will trigger AActor::TakeDamage(...), which is overrided for classes that actually should take damage, like AEnemy.
-		// This is priority over executing getHit_Implemation, bc death animation play is implemented in TakeDamage method
-		float Damage = FMath::FRandRange(BaseDamage - DamageVariation, BaseDamage + DamageVariation);
-		UGameplayStatics::ApplyDamage(BoxHit.GetActor(), Damage, GetInstigator()->GetController(), this, UDamageType::StaticClass());
-
-		// 2nd. Call GetHit_Implementation, which would run the hit animation in case the actor is still alive
-		IHitInterface* HitInterface = Cast<IHitInterface>(BoxHit.GetActor());
-		if (HitInterface)		// This is equivalent to check whether the actor boxHit.GetActor() is an element that implements the getHit() method, i.e. the actor can get hit and has some logic to be executed when get hit (not necessarily all actors would need to execute logic, like sounds, particles, etc.)
-			HitInterface->Execute_GetHit(BoxHit.GetActor(), BoxHit.ImpactPoint);
+		ApplyDamage(BoxHit);
+		ApplyHit(BoxHit);
 
 		ActorsToIgnore.AddUnique(BoxHit.GetActor());
 
-		// 3. Create impact forces for physics
-		CreateHitFields(BoxHit.ImpactPoint);	// This would be executed even for non-breakable actors, so maybe near breakable objects are affected when hitting a regular enemy (which seems cool)
+		CreateHitFields(BoxHit.ImpactPoint);
 	}
+}
+
+void AWeapon::PerformBoxTrace(FHitResult& BoxHit)
+{
+	ActorsToIgnore.Add(this);
+
+	const FVector Start = BoxTraceStart->GetComponentLocation();
+	const FVector End = BoxTraceEnd->GetComponentLocation();
+
+	UKismetSystemLibrary::BoxTraceSingle(	this,
+											Start, End, 
+											FVector(5.f, 5.f, 5.f), BoxTraceStart->GetComponentRotation(),
+											ETraceTypeQuery::TraceTypeQuery1, false,
+											ActorsToIgnore,
+											bShowDebugBoxTrace ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
+											BoxHit,
+											true);
+}
+
+void AWeapon::ApplyDamage(const FHitResult& BoxHit)
+{
+	/** This will trigger AActor::TakeDamage(), which is overrided for classes that actually should take damage, like AEnemy.
+	*	This is priority over executing GetHit(), bc Enemy's health needs to be updated in order for GetHit to know whether to play Hit or Death animation.
+	*/
+
+	float Damage = FMath::FRandRange(BaseDamage - DamageVariation, BaseDamage + DamageVariation);
+	UGameplayStatics::ApplyDamage(BoxHit.GetActor(), Damage, GetInstigator()->GetController(), this, UDamageType::StaticClass());
+}
+
+void AWeapon::ApplyHit(const FHitResult& BoxHit)
+{
+	/** Checking if the hit actor implements the hit Interface (not all actors would need to execute logics when hit, like sounds, particles, etc.).
+	*   Typically, here one would execute all that logic unrelated to applying damage.
+	*/
+
+	IHitInterface* HitInterface = Cast<IHitInterface>(BoxHit.GetActor());
+	if (HitInterface)
+		HitInterface->Execute_GetHit(BoxHit.GetActor(), BoxHit.ImpactPoint);
 }

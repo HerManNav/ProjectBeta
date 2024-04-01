@@ -18,18 +18,19 @@ class SLASH_API AWeapon : public AItem
 	GENERATED_BODY()
 
 public:
+
 	AWeapon();
 
 	UFUNCTION(BlueprintCallable)
-	void Equip(USceneComponent* InParent, FName InSocketName, AActor* NewOwner, APawn* NewInstigator);
+	void Equip(USceneComponent* Parent, FName SocketName, AActor* NewOwner, APawn* NewInstigator);
 	
 protected:
+
 	virtual void BeginPlay() override;
-
-	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
-	virtual void OnSphereOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
-
-	void AttachToComponentAndSocket(USceneComponent* InParent, const FName& InSocketName);
+	
+	/**
+	* Methods
+	*/
 
 	UFUNCTION()
 	void OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -37,19 +38,44 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void CreateHitFields(const FVector& Location);
 
-	/*
-	* Damage related members
+	/**
+	* Variables
 	*/
 
+	/** Damage related members */
+
+	UPROPERTY(EditAnywhere, Category = "Debug|Box trace")
+	bool bShowDebugBoxTrace = false;
+
+	UPROPERTY(EditAnywhere, Category = "Damage")
 	float BaseDamage = 20.f;
+
+	UPROPERTY(EditAnywhere, Category = "Damage")
 	float DamageVariation = 10.f;
 
 private:
 
-	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	/**
+	* Methods
+	*/
+
+	void DeactivateNiagara();
+
+	/** Box trace */
+	void PerformBoxTrace(FHitResult& BoxHit);
+	void ApplyDamage(const FHitResult& BoxHit);
+	void ApplyHit(const FHitResult& BoxHit);
+
+	/**
+	* Variables
+	*/
+
+	TArray<AActor*> ActorsToIgnore;
+
+	UPROPERTY(EditAnywhere)
 	USoundBase* EquipSound;
 
-	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+	UPROPERTY(VisibleAnywhere)
 	UBoxComponent* WeaponBox;
 
 	UPROPERTY(VisibleAnywhere)
@@ -57,8 +83,6 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	USceneComponent* BoxTraceEnd;
-
-	TArray<AActor*> ActorsToIgnore;
 
 public:
 

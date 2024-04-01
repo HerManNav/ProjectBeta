@@ -29,6 +29,14 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	/**
+	* Methods
+	*/
+
+	void AttachToComponentAndSocket(USceneComponent* InParent, const FName& InSocketName);
+	void PlaySound(USoundBase* Sound, FVector Location);
+	void DisableSphereCollision();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sine Parameters")
 	float Amplitude = 0.25f;
 
@@ -50,15 +58,15 @@ protected:
 	UFUNCTION()
 	virtual void OnSphereOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	/*
-	* State
+	/** 
+	* Variables
 	*/
+
+	/** State */
 
 	EItemState ItemState = EItemState::EIS_Hovering;
 
-	/*
-	* Components
-	*/
+	/** Components */
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USphereComponent* Sphere;
@@ -77,7 +85,7 @@ private:
 public:
 	
 	/*
-	* Setters, getters and whatnot
+	* Setters and getters
 	*/
 
 	void SetStaticMesh(UStaticMesh* Mesh) { ItemMesh->SetStaticMesh(Mesh); }

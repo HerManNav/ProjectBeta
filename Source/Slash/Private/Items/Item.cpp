@@ -2,10 +2,13 @@
 
 
 #include "Items/Item.h"
-#include "Slash/DebugMacros.h"
-#include "Components/SphereComponent.h"
 #include "Characters/SlashCharacter.h"
+
+#include "Components/SphereComponent.h"
 #include "NiagaraComponent.h"
+#include "Kismet/GameplayStatics.h"
+
+#include "Slash/DebugMacros.h"
 
 AItem::AItem()
 {
@@ -28,6 +31,24 @@ void AItem::BeginPlay()
 
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnSphereOverlap);
 	Sphere->OnComponentEndOverlap.AddDynamic(this, &AItem::OnSphereOverlapEnd);
+}
+
+void AItem::AttachToComponentAndSocket(USceneComponent* InParent, const FName& InSocketName)
+{
+	FAttachmentTransformRules TransformRules(EAttachmentRule::SnapToTarget, true);
+	GetRootComponent()->AttachToComponent(InParent, TransformRules, InSocketName);
+}
+
+void AItem::PlaySound(USoundBase* Sound, FVector Location)
+{
+	if (Sound)
+		UGameplayStatics::PlaySoundAtLocation(this, Sound, Location);
+}
+
+void AItem::DisableSphereCollision()
+{
+	if (Sphere)
+		Sphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 float AItem::TransformedSin()
