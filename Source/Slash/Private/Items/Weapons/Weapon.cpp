@@ -58,10 +58,14 @@ void AWeapon::SetBoxCollision(ECollisionEnabled::Type CollisionEnabled)
 
 void AWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (!ShouldPerformBoxTrace(OtherActor)) return;
+
+	ActorsToIgnore.Add(GetOwner());
+
 	FHitResult BoxHit;
 	PerformBoxTrace(BoxHit);
-
-	if (BoxHit.bBlockingHit)	// Same than boxHit.GetActor()
+	
+	if (BoxHit.bBlockingHit)		// Same than boxHit.GetActor()
 	{
 		ApplyDamage(BoxHit);
 		ApplyHit(BoxHit);
@@ -70,6 +74,14 @@ void AWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 
 		CreateHitFields(BoxHit.ImpactPoint);
 	}
+}
+
+bool AWeapon::ShouldPerformBoxTrace(AActor* OverlappedActor)
+{
+	/* ToDo: to disable all friendly fire, we could check whether the OverlappedActor is of the same type of the owner of this weapon by means of tags
+	*  We should also perform this after the box trace bc it could hit another enemies after the first successful hit! 
+	   Parametrize friendly fire with an exposed variable! S*/
+	return OverlappedActor != GetOwner();
 }
 
 void AWeapon::PerformBoxTrace(FHitResult& BoxHit)

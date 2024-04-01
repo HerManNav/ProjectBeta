@@ -62,6 +62,7 @@ private:
 	void DeactivateNiagara();
 
 	/** Box trace */
+	bool ShouldPerformBoxTrace(AActor* OverlappedActor);
 	void PerformBoxTrace(FHitResult& BoxHit);
 	void ApplyDamage(const FHitResult& BoxHit);
 	void ApplyHit(const FHitResult& BoxHit);

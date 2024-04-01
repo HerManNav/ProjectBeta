@@ -52,6 +52,8 @@ void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 
+	Tags.Add(FName("Enemy"));
+
 	InitHealthBar();
 	InitAI();
 	InitDeathMembers();
