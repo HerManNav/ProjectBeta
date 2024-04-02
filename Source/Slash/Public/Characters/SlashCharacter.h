@@ -60,6 +60,10 @@ protected:
 
 	void UpdateMaxGroundSpeed();
 	
+	/** Exposed */
+	UFUNCTION(BlueprintCallable)
+	void EndHitReact();
+
 	/*
 	* Variables
 	*/
@@ -107,7 +111,7 @@ private:
 
 	/** State */
 
-	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
+	EEquipState EquipState = EEquipState::EES_Unequipped;
 	EActionState ActionState = EActionState::EAS_Unoccupied;
 
 	UPROPERTY(VisibleInstanceOnly)
@@ -133,7 +137,7 @@ public:
 
 	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
 
-	FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }
+	FORCEINLINE EEquipState GetEquipState() const { return EquipState; }
 
 	FORCEINLINE EActionState GetCharacterActionState() const { return ActionState; }
 

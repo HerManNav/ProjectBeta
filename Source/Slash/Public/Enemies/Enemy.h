@@ -111,10 +111,9 @@ private:
 	AActor* GetRandomActorFromArray(const TArray<AActor*>& RemainingPatrolPoints);
 	void ClearPatrolTimer();	
 
-	/** Take Damage */
+	/** Hit / Take Damage */
 	bool CanTakeDamage();
 	void ActuallyReceiveDamage(float DamageAmount);
-	bool HasSomeHealthRemaining();
 	void UpdateHealthBar();
 	bool IsAwareOfCharacter();
 	void SetCombatTarget(AActor* target);
@@ -144,7 +143,7 @@ private:
 	UPROPERTY(VisibleDefaultsOnly)
 	TObjectPtr<UNiagaraComponent> DeathPetals;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	TObjectPtr<UPawnSensingComponent> SensingComponent;
 
 	UPROPERTY(EditDefaultsOnly)

@@ -1,14 +1,24 @@
 #pragma once
 
-// ENUM to record what's the character equipping (weapon, objects, etc.)
+// What's the character equipping (weapon, objects, etc.)
 UENUM(BlueprintType)
-enum class ECharacterState : uint8
+enum class EEquipState : uint8
 {
-	ECS_Unequipped UMETA(DisplayName = "Unequipped"),
-	ECS_EquippedOneHandedWeapon UMETA(DisplayName = "Equipped one-handed weapon"),
-	ECS_EquippedTwoHandedWeapon UMETA(DisplayName = "Equipped two-handed weapon")
+	EES_Unequipped UMETA(DisplayName = "Unequipped"),
+	EES_EquippedOneHandedWeapon UMETA(DisplayName = "Equipped one-handed weapon"),
+	EES_EquippedTwoHandedWeapon UMETA(DisplayName = "Equipped two-handed weapon")
 };
 
+// What's the character doing (attacking, reacting to a hit)
+UENUM(BlueprintType)
+enum class EActionState : uint8
+{
+	EAS_Unoccupied UMETA(DisplayName = "Unoccupied"),
+	EAS_HitReacting UMETA(DisplayName = "HitReacting"),
+	EAS_Attacking UMETA(DisplayName = "Attacking")
+};
+
+// Used for Enemies only
 UENUM(BlueprintType)
 enum class EEnemyState : uint8
 {
@@ -22,14 +32,7 @@ enum class EEnemyState : uint8
 	EES_NoState UMETA(DisplayName = "NoState")
 };
 
-// ENUM to record what's the character doing (attacking, forcing a lock)
-UENUM(BlueprintType)
-enum class EActionState : uint8
-{
-	EAS_Unoccupied UMETA(DisplayName = "Unoccupied"),
-	EAS_Attacking UMETA(DisplayName =  "Attacking")
-};
-
+// How the character died
 UENUM(BlueprintType)
 enum EDeathPose
 {

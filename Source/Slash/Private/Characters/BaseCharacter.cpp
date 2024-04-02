@@ -25,6 +25,21 @@ void ABaseCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void ABaseCharacter::GetHit_Implementation(const FVector& HitPoint)
+{
+	if (HasSomeHealthRemaining())
+		ReactToHitBasedOnHitDirection(HitPoint);
+	else Die();
+
+	PlayHitSoundAtLocation(HitPoint);
+	PlayHitParticlesAtLocation(HitPoint);
+}
+
+bool ABaseCharacter::HasSomeHealthRemaining()
+{
+	return Attributes->IsAlive();
+}
+
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();

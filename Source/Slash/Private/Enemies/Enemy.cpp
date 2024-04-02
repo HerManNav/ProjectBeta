@@ -108,17 +108,10 @@ void AEnemy::Destroyed()
 
 void AEnemy::GetHit_Implementation(const FVector& HitPoint)
 {
-	if (IsAlive())
-	{
-		if (IsEngaged()) AttackEnd();
+	if (IsEngaged()) AttackEnd();	
+	ShowHealthBar();
 
-		ShowHealthBar();
-		ReactToHitBasedOnHitDirection(HitPoint);
-	}
-	else Die();
-
-	PlayHitSoundAtLocation(HitPoint);
-	PlayHitParticlesAtLocation(HitPoint);
+	Super::GetHit_Implementation(HitPoint);
 }
 
 /*
@@ -219,15 +212,10 @@ bool AEnemy::CanTakeDamage()
 
 void AEnemy::ActuallyReceiveDamage(float DamageAmount)
 {
-	Attributes->TakeDamage(DamageAmount);
+	Attributes->ReceiveDamage(DamageAmount);
 
 	if (!HasSomeHealthRemaining() && !IsDead() && !IsTerminal())
 		EnemyState = EEnemyState::EES_Terminal;
-}
-
-bool AEnemy::HasSomeHealthRemaining()
-{
-	return Attributes->IsAlive();
 }
 
 void AEnemy::UpdateHealthBar()
@@ -383,7 +371,8 @@ void AEnemy::ChaseCurrentTarget()
 
 bool AEnemy::CanAttack()
 {
-	return IsCharacterInsideAttackRange() && !IsTerminal() && !IsAttacking() && !IsEngaged();
+	return IsCharacterInsideAttackRange() && 
+		   !IsTerminal() && !IsAttacking() && !IsEngaged();
 }
 
 void AEnemy::SetAttackTimer()

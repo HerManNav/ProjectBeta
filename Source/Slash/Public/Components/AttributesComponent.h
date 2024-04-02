@@ -52,7 +52,7 @@ public:
 
 	bool IsAlive() { return Health > 0.f; }
 
-	void TakeDamage(float damage) { Health = FMath::Clamp(Health - damage, 0.f, MaxHealth); }
+	void ReceiveDamage(float damage) { Health = FMath::Clamp(Health - damage, 0.f, MaxHealth); }
 
 	float getHealthPercent() { return Health / MaxHealth; }
 

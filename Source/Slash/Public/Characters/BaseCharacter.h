@@ -26,6 +26,10 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	/** <IHitInterface> */
+	virtual void GetHit_Implementation(const FVector& HitPoint) override;
+	/** </IHitInterface> */
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -45,6 +49,9 @@ protected:
 	virtual int16 PlayAttackingMontage();
 	virtual int16 PlayDeathMontage();
 	virtual void PlayMontage(UAnimMontage* Montage, FName SectionName);
+
+	/** Hit / Take Damage */
+	virtual bool HasSomeHealthRemaining();
 
 	/** Death */
 	virtual void Die() {}
@@ -71,10 +78,10 @@ protected:
 
 	/** Attack */
 
-	UPROPERTY(EditAnywhere, Category = "Attack|Indices")
+	UPROPERTY(EditAnywhere, Category = "Montages|Attack|Indices")
 	int8 AttackIndex = -1;								// Use to test specific attack animations (if -1, it is not used and animations will be randomly selected, as designed)
 
-	UPROPERTY(EditAnywhere, Category = "Death|Indices")
+	UPROPERTY(EditAnywhere, Category = "Montages|Death|Indices")
 	int8 DeathIndex = -1;								// Use to test specific death animations (if -1, it is not used and animations will be randomly selected, as designed)
 
 private:

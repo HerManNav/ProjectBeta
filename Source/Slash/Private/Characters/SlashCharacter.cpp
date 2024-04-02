@@ -104,10 +104,9 @@ float ASlashCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damage
 void ASlashCharacter::GetHit_Implementation(const FVector& HitPoint)
 {
 	AttackEnd();
-	ReactToHitBasedOnHitDirection(HitPoint);
 
-	PlayHitSoundAtLocation(HitPoint);
-	PlayHitParticlesAtLocation(HitPoint);
+	ActionState = EActionState::EAS_HitReacting;
+	Super::GetHit_Implementation(HitPoint);
 }
 
 void ASlashCharacter::Move(const FInputActionValue& Value)
@@ -153,7 +152,7 @@ void ASlashCharacter::Equip()
 		 WeaponToEquip->Equip(this->GetMesh(), FName("socket_rightHand"), this, this);
 		 Weapon = WeaponToEquip;
 
-		 CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+		 EquipState = EEquipState::EES_EquippedOneHandedWeapon;
 
 		 UpdateMaxGroundSpeed();
 	 }
@@ -161,7 +160,7 @@ void ASlashCharacter::Equip()
 
 bool ASlashCharacter::CanAttack()
 {
-	return	CharacterState != ECharacterState::ECS_Unequipped &&
+	return	EquipState != EEquipState::EES_Unequipped &&
 			ActionState == EActionState::EAS_Unoccupied;
 }
 
@@ -192,15 +191,20 @@ void ASlashCharacter::UpdateMaxGroundSpeed()
 {
 	if (bWalking)
 	{
-		if (CharacterState == ECharacterState::ECS_Unequipped)
+		if (EquipState == EEquipState::EES_Unequipped)
 			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetWalkingSpeedUnequipped();
 		else
 			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetWalkingSpeedEquipped();
 	}
 	else {
-		if (CharacterState == ECharacterState::ECS_Unequipped)
+		if (EquipState == EEquipState::EES_Unequipped)
 			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetRunningSpeedUnequipped();
 		else
 			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetRunningSpeedEquipped();
 	}
+}
+
+void ASlashCharacter::EndHitReact()
+{
+	ActionState = EActionState::EAS_Unoccupied;
 }
