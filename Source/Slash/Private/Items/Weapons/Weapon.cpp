@@ -42,6 +42,7 @@ void AWeapon::Equip(USceneComponent* Parent, FName SocketName, AActor* NewOwner,
 	AttachToComponentAndSocket(Parent, SocketName);
 	PlaySound(EquipSound, GetActorLocation());
 	DisableSphereCollision();
+	DeactivateNiagara();
 
 	ItemState = EItemState::EIS_Equipped;
 }
