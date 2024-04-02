@@ -103,6 +103,7 @@ float ASlashCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damage
 
 void ASlashCharacter::GetHit_Implementation(const FVector& HitPoint)
 {
+	AttackEnd();
 	ReactToHitBasedOnHitDirection(HitPoint);
 
 	PlayHitSoundAtLocation(HitPoint);
