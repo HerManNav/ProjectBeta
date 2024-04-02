@@ -44,7 +44,7 @@ protected:
 	/** Montage */
 	virtual int16 PlayAttackingMontage();
 	virtual int16 PlayDeathMontage();
-	virtual void PlayMontage(UAnimMontage* Montage, FName MontageName);
+	virtual void PlayMontage(UAnimMontage* Montage, FName SectionName);
 
 	/** Death */
 	virtual void Die() {}

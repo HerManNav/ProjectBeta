@@ -49,13 +49,13 @@ int16 ABaseCharacter::PlayDeathMontage()
 	return PlayRandomMontageSection(deathMontage, DeathMontageSectionNames, DeathIndex);
 }
 
-void ABaseCharacter::PlayMontage(UAnimMontage* Montage, FName MontageName)
+void ABaseCharacter::PlayMontage(UAnimMontage* Montage, FName SectionName)
 {
 	TObjectPtr<UAnimInstance> AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && Montage)
 	{
 		AnimInstance->Montage_Play(Montage, 1.f);
-		AnimInstance->Montage_JumpToSection(MontageName, Montage);
+		AnimInstance->Montage_JumpToSection(SectionName, Montage);
 	}
 }
 
