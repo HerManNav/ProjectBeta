@@ -62,6 +62,9 @@ protected:
 	virtual void AttackEnd() {}
 
 	UFUNCTION(BlueprintCallable)
+	virtual void HitReactEnd() {};
+
+	UFUNCTION(BlueprintCallable)
 	virtual void SetWeaponCollision(ECollisionEnabled::Type CollisionEnabled);
 
 	/**

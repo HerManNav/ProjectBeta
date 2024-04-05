@@ -79,8 +79,8 @@ void AEnemy::InitAI()
 
 void AEnemy::InitDeathMembers()
 {
-	if (MaterialInstanceDynamic)
-		DitheringMaterial = UMaterialInstanceDynamic::Create(MaterialInstanceDynamic, this);
+	if (AfterDeathDitheringMI)
+		DitheringMaterial = UMaterialInstanceDynamic::Create(AfterDeathDitheringMI, this);
 
 	if (DeathPetals)
 		DeathPetals->Deactivate();
@@ -108,9 +108,12 @@ void AEnemy::Destroyed()
 
 void AEnemy::GetHit_Implementation(const FVector& HitPoint)
 {
-	if (IsEngaged()) AttackEnd();	
-	ShowHealthBar();
-
+	if (IsAlive())
+	{
+		EnemyState = EEnemyState::EES_HitReacting;
+		ShowHealthBar();
+	}
+	
 	Super::GetHit_Implementation(HitPoint);
 }
 
@@ -251,7 +254,7 @@ void AEnemy::Tick(float DeltaTime)
 
 void AEnemy::PawnSeen(APawn* Pawn)
 {
-	if (!IsPatrolling() || IsTerminal()) return;
+	if (!CanSee() || HasAlreadySeenTarget()) return;
 
 	if (IsPawnMainCharacter(Pawn) && IsCharacterInsideCombatRange(Pawn))
 	{
@@ -263,6 +266,16 @@ void AEnemy::PawnSeen(APawn* Pawn)
 		SetFocalPointToActor(CombatTarget);
 		ChaseCurrentTarget();
 	}
+}
+
+bool AEnemy::CanSee()
+{
+	return !IsTerminal() && !IsDead();
+}
+
+bool AEnemy::HasAlreadySeenTarget()
+{
+	return EnemyState > EEnemyState::EES_Patrolling;
 }
 
 bool AEnemy::IsPawnMainCharacter(APawn* Pawn)
@@ -372,7 +385,7 @@ void AEnemy::ChaseCurrentTarget()
 bool AEnemy::CanAttack()
 {
 	return IsCharacterInsideAttackRange() && 
-		   !IsTerminal() && !IsAttacking() && !IsEngaged();
+		   !IsTerminal() && !IsAttacking() && !IsEngaged() && !IsHitReacting();
 }
 
 void AEnemy::SetAttackTimer()
@@ -386,7 +399,6 @@ void AEnemy::SetAttackTimer()
 void AEnemy::Attack()
 {
 	Super::Attack();
-
 	if (PlayAttackingMontage() != -1)
 	{
 		EnemyState = EEnemyState::EES_Engaged;
@@ -395,6 +407,12 @@ void AEnemy::Attack()
 }
 
 void AEnemy::AttackEnd()
+{
+	EnemyState = EEnemyState::EES_NoState;
+	CheckCombat();
+}
+
+void AEnemy::HitReactEnd()
 {
 	EnemyState = EEnemyState::EES_NoState;
 	CheckCombat();
@@ -500,6 +518,11 @@ bool AEnemy::IsAttacking()
 bool AEnemy::IsEngaged()
 {
 	return EnemyState == EEnemyState::EES_Engaged;
+}
+
+bool AEnemy::IsHitReacting()
+{
+	return EnemyState == EEnemyState::EES_HitReacting;
 }
 
 void AEnemy::ShowHealthBar()

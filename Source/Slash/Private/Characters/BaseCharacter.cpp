@@ -25,6 +25,16 @@ void ABaseCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void ABaseCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (AttackMontageSectionNames.Num() <= 0)
+		UE_LOG(LogTemp, Warning, TEXT("No montage sections specified for Attack montage. No animation will be played."));
+	if (DeathMontageSectionNames.Num() <= 0)
+		UE_LOG(LogTemp, Warning, TEXT("No montage sections specified for Death montage. No animation will be played."));
+}
+
 void ABaseCharacter::GetHit_Implementation(const FVector& HitPoint)
 {
 	if (HasSomeHealthRemaining())
@@ -38,16 +48,6 @@ void ABaseCharacter::GetHit_Implementation(const FVector& HitPoint)
 bool ABaseCharacter::HasSomeHealthRemaining()
 {
 	return Attributes->IsAlive();
-}
-
-void ABaseCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if (AttackMontageSectionNames.Num() <= 0)
-		UE_LOG(LogTemp, Warning, TEXT("No montage sections specified for Attack montage. No animation will be played."));
-	if (DeathMontageSectionNames.Num() <= 0)
-		UE_LOG(LogTemp, Warning, TEXT("No montage sections specified for Death montage. No animation will be played."));
 }
 
 /*
@@ -114,12 +114,12 @@ FName ABaseCharacter::GetHitDirection(const FVector& HitPoint)
 	float AngleInDegrees = FMath::RadiansToDegrees(AngleInRadians);
 
 	/* DEBUG */
-	/*DRAW_SPHERE(hitPoint, 10.f);
-	UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + 100.f * actorForwardVector, 5.f, FColor::Cyan, 10.f);
-	UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + 100.f * hitVector, 5.f, FColor::Green, 10.f);
+	/*DRAW_SPHERE(HitPoint, 10.f);
+	UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + 100.f * ActorForwardVector, 5.f, FColor::Cyan, 10.f);
+	UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + 100.f * HitVector, 5.f, FColor::Green, 10.f);
 
-	UE_LOG(LogTemp, Warning, TEXT("degrees %f"), angleInDegrees);
-	UE_LOG(LogTemp, Warning, TEXT("degrees %f"), FVector::CrossProduct(actorForwardVector, hitVector).Z);*/
+	UE_LOG(LogTemp, Warning, TEXT("AngleInDegrees %f"), AngleInDegrees);
+	UE_LOG(LogTemp, Warning, TEXT("FVector::CrossProduct(ActorForwardVector, HitVector).Z %f"), FVector::CrossProduct(ActorForwardVector, HitVector).Z);*/
 	/* END DEBUG */
 
 	if (0.f < AngleInDegrees && AngleInDegrees < FrontBackAngle)

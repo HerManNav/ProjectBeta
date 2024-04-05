@@ -48,6 +48,7 @@ protected:
 	virtual bool CanAttack() override;
 	virtual void Attack() override;
 	virtual void AttackEnd() override;
+	virtual void HitReactEnd() override;
 	/** </ABaseCharacter> */
 
 	/** Input callbacks */
@@ -59,10 +60,6 @@ protected:
 	/** State */
 
 	void UpdateMaxGroundSpeed();
-	
-	/** Exposed */
-	UFUNCTION(BlueprintCallable)
-	void EndHitReact();
 
 	/*
 	* Variables

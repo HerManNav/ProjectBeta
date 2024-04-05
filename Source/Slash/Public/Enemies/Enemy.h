@@ -39,6 +39,7 @@ protected:
 	virtual bool CanAttack() override;
 	virtual void Attack() override;
 	virtual void AttackEnd() override;
+	virtual void HitReactEnd() override;
 	virtual void Die() override;
 	virtual int16 PlayDeathMontage() override;
 	/** </ABaseCharacter> */
@@ -70,6 +71,7 @@ private:
 	bool IsChasing();
 	bool IsAttacking();
 	bool IsEngaged();
+	bool IsHitReacting();
 
 	void ShowHealthBar();
 	void HideHealthBar();
@@ -89,6 +91,8 @@ private:
 	bool IsCharacterOutOfAttackRange();
 	bool IsCharacterInsideAttackRange();
 
+	bool CanSee();
+	bool HasAlreadySeenTarget();
 	bool IsPawnMainCharacter(APawn* Pawn);
 	bool IsCharacterInsideCombatRange(APawn* Pawn);
 
@@ -146,7 +150,7 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	TObjectPtr<UPawnSensingComponent> SensingComponent;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = Combat)
 	TSubclassOf<AWeapon> WeaponClass;
 
 	/** Combat (AI) */
@@ -154,10 +158,10 @@ private:
 	UPROPERTY()
 	TObjectPtr<AActor> CombatTarget;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat|Radius", meta = (AllowPrivateAccess = true))
 	float CombatRadius = 1000.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat|Radius", meta = (AllowPrivateAccess = true))
 	float AttackRadius = 200.f;
 
 	/** Patrol (AI) */
@@ -165,36 +169,36 @@ private:
 	UPROPERTY()
 	TObjectPtr<AAIController> AIController;
 
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = Patrol, meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Combat|Patrol", meta = (AllowPrivateAccess = true))
 	TObjectPtr<AActor> CurrentPatrolTarget;
 
-	UPROPERTY(EditInstanceOnly, Category = Patrol)
+	UPROPERTY(EditInstanceOnly, Category = "Combat|Patrol")
 	TArray<TObjectPtr<AActor>> PatrolPoints;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Combat|Patrol")
 	float PatrolRadius = 200.f;		// Don't set this below 150! Just to be sure (should be always > (105 + 15 + 1) ; 105 is the variation in AAIController::MoveTo method, +15 i the acceptanceRadius and +1 is just in case for precision errors)
 
 	FTimerHandle PatrolTimer;
 
 	/** Attack */
 
-	UPROPERTY(EditAnywhere, Category = "Attack|Timers")
-	float MinAttackWait = 1.f;
+	UPROPERTY(EditAnywhere, Category = "Combat|Attack|Timers")
+	float MinAttackWait = 0.8f;
 
-	UPROPERTY(EditAnywhere, Category = "Attack|Timers")
-	float MaxAttackWait = 1.4f;
+	UPROPERTY(EditAnywhere, Category = "Combat|Attack|Timers")
+	float MaxAttackWait = 1.2f;
 
 	FTimerHandle AttackTimer;
 
 	/** Death */
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Combat|Death")
 	int8 DeathAnimationAfterDead_index = 1;	// This will trigger an animation for the enemy after die if it gets hit again (e.g. 1 = "Death flying back" (see deathMontage) which is the most impressive one when enemy is on the floor)
 
 	/** Death: Dithering */
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UMaterialInterface> MaterialInstanceDynamic;
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|Death")
+	TObjectPtr<UMaterialInterface> AfterDeathDitheringMI;
 
 	UPROPERTY()								// Without this, this object would be considered for the GC, and then deleted in an uncontrolled way. So this prevents it and Unreal won't crash trying to access it after deleted (as it'd happen in fadeOut::decreaseDitheringOnMaterial method)
 	TObjectPtr<UMaterialInstanceDynamic> DitheringMaterial;

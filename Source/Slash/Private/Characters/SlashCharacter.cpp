@@ -204,7 +204,7 @@ void ASlashCharacter::UpdateMaxGroundSpeed()
 	}
 }
 
-void ASlashCharacter::EndHitReact()
+void ASlashCharacter::HitReactEnd()
 {
 	ActionState = EActionState::EAS_Unoccupied;
 }
