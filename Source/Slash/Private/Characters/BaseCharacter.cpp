@@ -41,6 +41,8 @@ void ABaseCharacter::GetHit_Implementation(const FVector& HitPoint)
 		ReactToHitBasedOnHitDirection(HitPoint);
 	else Die();
 
+	SetWeaponCollision(ECollisionEnabled::NoCollision);
+
 	PlayHitSoundAtLocation(HitPoint);
 	PlayHitParticlesAtLocation(HitPoint);
 }
