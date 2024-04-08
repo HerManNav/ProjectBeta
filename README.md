@@ -3,11 +3,22 @@
 So far, this full set of features has been implemented in C++:
 
 - Movement:
-  - Character movement (input-controlled, both keyboard and Gamepad)
-  - Enemies movement (AI-controlled): patrol & chasing character
+  - Character (input-controlled, both keyboard and Gamepad):
+    - Walk/run toggle
+    - Jump
+    - Equip weapons
+    - Attack
+  - Enemies (AI-controlled):
+    - Patrol
+    - Chasing character when seen
+    - Attack
+
 - Combat:
-  - Box trace for different kind of weapons
-  - Directional hits
+  - Box trace to detect collisions for different kind of weapons
+  - Directional hits detection to play different animations
+  - Enemy's translation Motion Warping to stay closer to character when attacking (used to set the difficulty)
+  - Enemy's rotation Motion Warping to face character when attacking
+
 - Death:
   - Enemies random animation deaths
   - Dithering & particles before destroying enemy instances
