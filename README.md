@@ -8,10 +8,12 @@ So far, this full set of features has been implemented in C++:
     - Jump
     - Equip weapons
     - Attack
+    - Health & Death
   - Enemies (AI-controlled):
     - Patrol
     - Chasing character when seen
     - Attack
+    - Health & Death
 
 - Combat:
   - Box trace to detect collisions for different kind of weapons
