@@ -49,6 +49,9 @@ protected:
 	virtual void Attack() override;
 	virtual void AttackEnd() override;
 	virtual void HitReactEnd() override;
+	virtual bool CanTakeDamage() override;
+	virtual void ActuallyReceiveDamage(float DamageAmount) override;
+	virtual void UpdateHealthBar() override;
 	/** </ABaseCharacter> */
 
 	/** Input callbacks */

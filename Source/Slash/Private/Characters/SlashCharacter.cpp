@@ -97,8 +97,7 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 float ASlashCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	UE_LOG(LogTemp, Warning, TEXT("hey yo slash character taking damage!"))
-	return 0.0f;
+	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 }
 
 void ASlashCharacter::GetHit_Implementation(const FVector& HitPoint)
@@ -207,4 +206,18 @@ void ASlashCharacter::UpdateMaxGroundSpeed()
 void ASlashCharacter::HitReactEnd()
 {
 	ActionState = EActionState::EAS_Unoccupied;
+}
+
+bool ASlashCharacter::CanTakeDamage()
+{
+	return Super::CanTakeDamage();
+}
+
+void ASlashCharacter::ActuallyReceiveDamage(float DamageAmount)
+{
+	Super::ActuallyReceiveDamage(DamageAmount);
+}
+
+void ASlashCharacter::UpdateHealthBar()
+{
 }

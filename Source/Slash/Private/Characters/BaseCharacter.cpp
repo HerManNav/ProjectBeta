@@ -35,6 +35,10 @@ void ABaseCharacter::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("No montage sections specified for Death montage. No animation will be played."));
 }
 
+/*
+* Hit / Take Damage 
+*/
+
 void ABaseCharacter::GetHit_Implementation(const FVector& HitPoint)
 {
 	if (HasSomeHealthRemaining())
@@ -50,6 +54,26 @@ void ABaseCharacter::GetHit_Implementation(const FVector& HitPoint)
 bool ABaseCharacter::HasSomeHealthRemaining()
 {
 	return Attributes->IsAlive();
+}
+
+float ABaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if (!CanTakeDamage()) return -1.f;
+
+	ActuallyReceiveDamage(DamageAmount);
+	UpdateHealthBar();
+
+	return DamageAmount;
+}
+
+bool ABaseCharacter::CanTakeDamage()
+{
+	return Attributes != nullptr;
+}
+
+void ABaseCharacter::ActuallyReceiveDamage(float DamageAmount)
+{
+	Attributes->ReceiveDamage(DamageAmount);
 }
 
 /*
@@ -146,6 +170,22 @@ void ABaseCharacter::SetWeaponCollision(ECollisionEnabled::Type CollisionEnabled
 		Weapon->SetBoxCollision(CollisionEnabled);
 		Weapon->ClearActorsToIgnore();
 	}
+}
+
+FVector ABaseCharacter::GetRotationTargetForMotionWarping()
+{
+	if (CombatTarget) return CombatTarget->GetActorLocation();
+	return FVector::ZeroVector;
+}
+
+FVector ABaseCharacter::GetLocationTargetForMotionWarping()
+{
+	if (!CombatTarget) return FVector::ZeroVector;
+	 
+	FVector CombatTargetLocation = CombatTarget->GetActorLocation();
+	FVector TargetToMe = (GetActorLocation() - CombatTargetLocation).GetSafeNormal();
+
+	return CombatTargetLocation + DistanceToTarget_MotionWarping * TargetToMe;
 }
 
 /*

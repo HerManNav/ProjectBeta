@@ -109,11 +109,10 @@ void AEnemy::Destroyed()
 void AEnemy::GetHit_Implementation(const FVector& HitPoint)
 {
 	if (IsAlive())
-	{
 		EnemyState = EEnemyState::EES_HitReacting;
-		ShowHealthBar();
-	}
-	
+
+	ShowHealthBar();
+
 	Super::GetHit_Implementation(HitPoint);
 }
 
@@ -197,25 +196,21 @@ void AEnemy::ActivateDeathPetalsAnim()
 */
 
 float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
-{
-	if (!CanTakeDamage()) return -1.f;
-
-	ActuallyReceiveDamage(DamageAmount);
-	UpdateHealthBar();
-	
+{	
 	PawnSeen(EventInstigator->GetPawn());
 
-	return DamageAmount;
+	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 }
 
 bool AEnemy::CanTakeDamage()
 {
-	return Attributes && HealthBar && !IsTerminal();
+	return Super::CanTakeDamage() && 
+		   HealthBar && !IsTerminal();
 }
 
 void AEnemy::ActuallyReceiveDamage(float DamageAmount)
 {
-	Attributes->ReceiveDamage(DamageAmount);
+	Super::ActuallyReceiveDamage(DamageAmount);
 
 	if (!HasSomeHealthRemaining() && !IsDead() && !IsTerminal())
 		EnemyState = EEnemyState::EES_Terminal;
@@ -227,10 +222,10 @@ void AEnemy::UpdateHealthBar()
 		HealthBar->SetPercentage(Attributes->getHealthPercent());
 }
 
-bool AEnemy::IsAwareOfCharacter()
-{
-	return EnemyState > EEnemyState::EES_Patrolling;
-}
+//bool AEnemy::IsAwareOfCharacter()
+//{
+//	return EnemyState > EEnemyState::EES_Patrolling;
+//}
 
 /* 
 * Tick

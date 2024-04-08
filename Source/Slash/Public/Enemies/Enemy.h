@@ -42,6 +42,9 @@ protected:
 	virtual void HitReactEnd() override;
 	virtual void Die() override;
 	virtual int16 PlayDeathMontage() override;
+	virtual bool CanTakeDamage() override;
+	virtual void ActuallyReceiveDamage(float DamageAmount) override;
+	virtual void UpdateHealthBar() override;
 	/** </ABaseCharacter> */
 
 	UPROPERTY(BlueprintReadOnly)
@@ -95,6 +98,7 @@ private:
 	bool HasAlreadySeenTarget();
 	bool IsPawnMainCharacter(APawn* Pawn);
 	bool IsCharacterInsideCombatRange(APawn* Pawn);
+	void SetCombatTarget(AActor* target);
 
 	void LoseInterest();
 	void KeepPatrolling();
@@ -113,14 +117,7 @@ private:
 	void MoveToPatrolTarget();
 	void GetRemainingPatrolPoints(TArray<AActor*>& RemainingPatrolPoints);
 	AActor* GetRandomActorFromArray(const TArray<AActor*>& RemainingPatrolPoints);
-	void ClearPatrolTimer();	
-
-	/** Hit / Take Damage */
-	bool CanTakeDamage();
-	void ActuallyReceiveDamage(float DamageAmount);
-	void UpdateHealthBar();
-	bool IsAwareOfCharacter();
-	void SetCombatTarget(AActor* target);
+	void ClearPatrolTimer();
 
 	/** Death */
 	void StopAIController();
@@ -153,10 +150,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = Combat)
 	TSubclassOf<AWeapon> WeaponClass;
 
-	/** Combat (AI) */
-
-	UPROPERTY()
-	TObjectPtr<AActor> CombatTarget;
+	/** AI: Combat */
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat|Radius", meta = (AllowPrivateAccess = true))
 	float CombatRadius = 1000.f;
@@ -164,7 +158,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat|Radius", meta = (AllowPrivateAccess = true))
 	float AttackRadius = 200.f;
 
-	/** Patrol (AI) */
+	/** AI: Patrol */
 
 	UPROPERTY()
 	TObjectPtr<AAIController> AIController;
@@ -180,7 +174,7 @@ private:
 
 	FTimerHandle PatrolTimer;
 
-	/** Attack */
+	/** AI: Attack */
 
 	UPROPERTY(EditAnywhere, Category = "Combat|Attack|Timers")
 	float MinAttackWait = 0.8f;
