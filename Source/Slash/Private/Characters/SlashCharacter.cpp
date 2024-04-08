@@ -62,6 +62,10 @@ void ASlashCharacter::BeginPlay()
 	InitHUD();
 }
 
+/*
+* Initialization 
+*/
+
 void ASlashCharacter::InitCameraController()
 {
 	FRotator ControllerRotation = GetController()->GetControlRotation();
@@ -74,9 +78,9 @@ void ASlashCharacter::InitMappingContext()
 {
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		if (EnhancedInputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			Subsystem->AddMappingContext(EchoMappingContext, 0);
+			EnhancedInputSubsystem->AddMappingContext(EchoMappingContext, 0);
 		}
 	}
 }
@@ -95,6 +99,10 @@ void ASlashCharacter::InitHUD()
 	}
 }
 
+/*
+* Input
+*/
+
 void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -112,17 +120,14 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	}
 }
 
+void ASlashCharacter::DisableAllInput()
+{
+	EnhancedInputSubsystem->RemoveMappingContext(EchoMappingContext);
+}
+
 float ASlashCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-}
-
-void ASlashCharacter::GetHit_Implementation(const FVector& HitPoint)
-{
-	AttackEnd();
-
-	ActionState = EActionState::EAS_HitReacting;
-	Super::GetHit_Implementation(HitPoint);
 }
 
 void ASlashCharacter::Move(const FInputActionValue& Value)
@@ -174,28 +179,6 @@ void ASlashCharacter::Equip()
 	 }
 }
 
-bool ASlashCharacter::CanAttack()
-{
-	return	EquipState != EEquipState::EES_Unequipped &&
-			ActionState == EActionState::EAS_Unoccupied;
-}
-
-void ASlashCharacter::Attack()
-{
-	Super::Attack();
-
-	if (CanAttack())
-	{
-		if (PlayAttackingMontage() != -1)
-			ActionState = EActionState::EAS_Attacking;
-	}
-}
-
-void ASlashCharacter::AttackEnd()
-{
-	ActionState = EActionState::EAS_Unoccupied;
-}
-
 void ASlashCharacter::ToggleWalk()
 {
 	bWalking = !bWalking;
@@ -212,12 +195,28 @@ void ASlashCharacter::UpdateMaxGroundSpeed()
 		else
 			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetWalkingSpeedEquipped();
 	}
-	else {
+	else
+	{
 		if (EquipState == EEquipState::EES_Unequipped)
 			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetRunningSpeedUnequipped();
 		else
 			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetRunningSpeedEquipped();
 	}
+}
+
+/*
+* Hit / Take damage 
+*/
+
+void ASlashCharacter::GetHit_Implementation(const FVector& HitPoint)
+{
+	if (HasSomeHealthRemaining())
+	{
+		AttackEnd();
+		ActionState = EActionState::EAS_HitReacting;
+	}
+
+	Super::GetHit_Implementation(HitPoint);
 }
 
 void ASlashCharacter::HitReactEnd()
@@ -239,4 +238,58 @@ void ASlashCharacter::UpdateHealthBar()
 {
 	if (HUD)
 		HUD->GetSlashOverlay()->SetHealthPercentage(Attributes->GetHealthPercent());
+}
+
+void ASlashCharacter::Die()
+{
+	ActionState = EActionState::EAS_Dead;
+
+	DisableCollisionsToDie();
+	DisableAllInput();
+
+	PlayDeathMontage();
+}
+
+void ASlashCharacter::DisableCollisionsToDie()
+{
+	Super::DisableCollisionsToDie();
+
+	GetMesh()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Ignore);
+}
+
+int16 ASlashCharacter::PlayDeathMontage()
+{
+	int16 PlayedDeathIndex = Super::PlayDeathMontage();
+	TEnumAsByte<EDeathPose> PlayedDeathPose(PlayedDeathIndex);
+	if (PlayedDeathPose < GetDeathMontageNumberOfSections())
+		DeathPose = PlayedDeathPose;
+
+	return PlayedDeathIndex;
+}
+
+/*
+* Attack
+*/
+
+bool ASlashCharacter::CanAttack()
+{
+	return	EquipState != EEquipState::EES_Unequipped &&
+			ActionState == EActionState::EAS_Unoccupied;
+}
+
+void ASlashCharacter::Attack()
+{
+	Super::Attack();
+
+	if (CanAttack())
+	{
+		if (PlayAttackingMontage() != -1)
+			ActionState = EActionState::EAS_Attacking;
+	}
+}
+
+void ASlashCharacter::AttackEnd()
+{
+	ActionState = EActionState::EAS_Unoccupied;
 }

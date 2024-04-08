@@ -127,7 +127,7 @@ void AEnemy::Die()
 		HideHealthBar();
 		GetWorldTimerManager().ClearAllTimersForObject(this);
 		StopAIController();
-		DisableCollisionsForPawn();
+		DisableCollisionsToDie();
 		FadeOut();
 
 		EnemyState = EEnemyState::EES_Dead;
@@ -145,12 +145,6 @@ void AEnemy::StopAIController()
 		AIController->StopMovement();
 		AIController->ClearFocus(EAIFocusPriority::Gameplay);
 	}
-}
-
-void AEnemy::DisableCollisionsForPawn()
-{
-	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 }
 
 int16 AEnemy::PlayDeathMontage()

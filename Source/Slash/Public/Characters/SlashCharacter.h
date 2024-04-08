@@ -14,6 +14,7 @@ class UCameraComponent;
 
 class UInputMappingContext;
 class UInputAction;
+class UEnhancedInputLocalPlayerSubsystem;
 
 class UGroomComponent;
 
@@ -50,6 +51,9 @@ protected:
 	virtual void Attack() override;
 	virtual void AttackEnd() override;
 	virtual void HitReactEnd() override;
+	virtual void Die() override;
+	virtual void DisableCollisionsToDie() override;
+	virtual int16 PlayDeathMontage() override;
 	virtual bool CanTakeDamage() override;
 	virtual void ActuallyReceiveDamage(float DamageAmount) override;
 	virtual void UpdateHealthBar() override;
@@ -71,7 +75,14 @@ protected:
 
 	bool bWalking;
 
+	EEquipState EquipState = EEquipState::EES_Unequipped;
+
+	UPROPERTY(BlueprintReadOnly)
+	EActionState ActionState = EActionState::EAS_Unoccupied;
+
 	/** Input */
+
+	TObjectPtr<UEnhancedInputLocalPlayerSubsystem> EnhancedInputSubsystem;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputMappingContext> EchoMappingContext;
@@ -107,14 +118,14 @@ private:
 	void InitMappingContext();
 	void InitHUD();
 
+	/* General common methods*/
+	void DisableAllInput();
+
 	/** 
 	* Variables
 	*/
 
 	/** State */
-
-	EEquipState EquipState = EEquipState::EES_Unequipped;
-	EActionState ActionState = EActionState::EAS_Unoccupied;
 
 	UPROPERTY(VisibleInstanceOnly)
 	TObjectPtr<AItem> OverlappingItem;

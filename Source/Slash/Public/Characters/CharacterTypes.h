@@ -15,7 +15,8 @@ enum class EActionState : uint8
 {
 	EAS_Unoccupied UMETA(DisplayName = "Unoccupied"),
 	EAS_HitReacting UMETA(DisplayName = "HitReacting"),
-	EAS_Attacking UMETA(DisplayName = "Attacking")
+	EAS_Attacking UMETA(DisplayName = "Attacking"),
+	EAS_Dead UMETA(DisplayName = "Dead")
 };
 
 // Used for Enemies only

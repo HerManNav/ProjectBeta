@@ -76,9 +76,27 @@ void ABaseCharacter::ActuallyReceiveDamage(float DamageAmount)
 	Attributes->ReceiveDamage(DamageAmount);
 }
 
+void ABaseCharacter::DisableCollisionsToDie()
+{
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+}
+
 /*
 * Montages
 */
+
+int16 ABaseCharacter::GetAttackMontageNumberOfSections()
+{
+	if (AttackMontage) return AttackMontage->GetNumSections();
+	return 0;
+}
+
+int16 ABaseCharacter::GetDeathMontageNumberOfSections()
+{
+	if (DeathMontage) return DeathMontage->GetNumSections();
+	return 0;
+}
 
 int16 ABaseCharacter::PlayAttackingMontage()
 {
@@ -87,7 +105,7 @@ int16 ABaseCharacter::PlayAttackingMontage()
 
 int16 ABaseCharacter::PlayDeathMontage()
 {
-	return PlayRandomMontageSection(deathMontage, DeathMontageSectionNames, DeathIndex);
+	return PlayRandomMontageSection(DeathMontage, DeathMontageSectionNames, DeathIndex);
 }
 
 void ABaseCharacter::PlayMontage(UAnimMontage* Montage, FName SectionName)

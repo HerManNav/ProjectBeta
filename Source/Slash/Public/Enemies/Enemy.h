@@ -48,9 +48,6 @@ protected:
 	/** </ABaseCharacter> */
 
 	UPROPERTY(BlueprintReadOnly)
-	TEnumAsByte<EDeathPose> DeathPose;
-
-	UPROPERTY(BlueprintReadOnly)
 	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
 
 private:
@@ -121,7 +118,6 @@ private:
 
 	/** Death */
 	void StopAIController();
-	void DisableCollisionsForPawn();
 	void FadeOut();
 	void DecreaseDitheringOnMaterial();
 	void ActivateDeathPetalsAnim();
@@ -187,7 +183,7 @@ private:
 	/** Death */
 
 	UPROPERTY(EditAnywhere, Category = "Combat|Death")
-	int8 DeathAnimationAfterDead_index = 1;	// This will trigger an animation for the enemy after die if it gets hit again (e.g. 1 = "Death flying back" (see deathMontage) which is the most impressive one when enemy is on the floor)
+	int8 DeathAnimationAfterDead_index = 1;	// This will trigger an animation for the enemy after die if it gets hit again (e.g. 1 = "Death flying back" (see DeathMontage) which is the most impressive one when enemy is on the floor)
 
 	/** Death: Dithering */
 

@@ -47,6 +47,8 @@ protected:
 	void PlayHitParticlesAtLocation(const FVector& Location);
 
 	/** Montage */
+	virtual int16 GetAttackMontageNumberOfSections();
+	virtual int16 GetDeathMontageNumberOfSections();
 	virtual int16 PlayAttackingMontage();
 	virtual int16 PlayDeathMontage();
 	virtual void PlayMontage(UAnimMontage* Montage, FName SectionName);
@@ -59,6 +61,7 @@ protected:
 
 	/** Death */
 	virtual void Die() {}
+	virtual void DisableCollisionsToDie();
 
 	/** Exposed */
 
@@ -88,6 +91,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<AWeapon> Weapon;
+
+	UPROPERTY(BlueprintReadOnly)
+	TEnumAsByte<EDeathPose> DeathPose;
 
 	/** Combat */
 
@@ -132,7 +138,7 @@ private:
 	TObjectPtr<UAnimMontage> HitMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Montages|Death")
-	TObjectPtr<UAnimMontage> deathMontage;
+	TObjectPtr<UAnimMontage> DeathMontage;
 
 	UPROPERTY(EditAnywhere, Category = "Montages|Attack")
 	TArray<FName> AttackMontageSectionNames;
