@@ -89,10 +89,12 @@
 **/Content/MSPresets/*
 **/Content/ParagonMinions/*
 **/Content/StarterContent/*
-**/Content/Textures/*
 **/Content/Weapon_Pack/*
 
 **/Binaries/*
 
 !**/Content/Mixamo/paladin/Rigs/
 !**/Content/Mixamo/xbot/Rigs/
+
+Content/Textures/NewMaterial.uasset
+Content/Textures/NewMaterial1.uasset
