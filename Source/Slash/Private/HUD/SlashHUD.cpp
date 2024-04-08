@@ -8,7 +8,6 @@
 void ASlashHUD::BeginPlay()
 {
 	CreateSlashOverlayWidget();
-	InitSlashOverlay();
 }
 
 void ASlashHUD::CreateSlashOverlayWidget()
