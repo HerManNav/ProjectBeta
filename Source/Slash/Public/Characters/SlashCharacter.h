@@ -18,6 +18,7 @@ class UInputAction;
 class UGroomComponent;
 
 class AItem;
+class ASlashHUD;
 
 UCLASS()
 class SLASH_API ASlashCharacter : public ABaseCharacter
@@ -104,6 +105,7 @@ private:
 
 	void InitCameraController();
 	void InitMappingContext();
+	void InitHUD();
 
 	/** 
 	* Variables
@@ -116,6 +118,9 @@ private:
 
 	UPROPERTY(VisibleInstanceOnly)
 	TObjectPtr<AItem> OverlappingItem;
+
+	UPROPERTY()
+	TObjectPtr<ASlashHUD> HUD;
 
 	/** Components */
 

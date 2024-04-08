@@ -54,7 +54,7 @@ public:
 
 	void ReceiveDamage(float damage) { Health = FMath::Clamp(Health - damage, 0.f, MaxHealth); }
 
-	float getHealthPercent() { return Health / MaxHealth; }
+	float GetHealthPercent() { return Health / MaxHealth; }
 
 	float GetWalkingSpeedUnequipped() { return WalkingSpeedUnequipped; }
 

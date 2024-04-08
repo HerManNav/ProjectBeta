@@ -21,7 +21,6 @@ protected:
 	virtual void BeginPlay() override;
 
 	void CreateSlashOverlayWidget();
-	void InitSlashOverlay();
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> SlashOverlayClass;

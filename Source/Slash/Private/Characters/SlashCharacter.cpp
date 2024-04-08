@@ -4,6 +4,8 @@
 #include "Characters/SlashCharacter.h"
 #include "Items/Weapons/Weapon.h"
 #include "Components/AttributesComponent.h"
+#include "HUD/SlashHUD.h"
+#include "HUD/SlashOverlay.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -57,6 +59,7 @@ void ASlashCharacter::BeginPlay()
 
 	InitCameraController();
 	InitMappingContext();
+	InitHUD();
 }
 
 void ASlashCharacter::InitCameraController()
@@ -75,6 +78,20 @@ void ASlashCharacter::InitMappingContext()
 		{
 			Subsystem->AddMappingContext(EchoMappingContext, 0);
 		}
+	}
+}
+
+void ASlashCharacter::InitHUD()
+{
+	APlayerController* SlashController = Cast<APlayerController>(GetController());
+	if (SlashController)
+	{
+		HUD = Cast<ASlashHUD>(SlashController->GetHUD());
+
+		HUD->GetSlashOverlay()->SetHealthPercentage(1.f);
+		HUD->GetSlashOverlay()->SetStaminaPercentage(1.f);
+		HUD->GetSlashOverlay()->SetCoinsAmount(0);
+		HUD->GetSlashOverlay()->SetSoulsAmount(0);
 	}
 }
 
@@ -220,4 +237,6 @@ void ASlashCharacter::ActuallyReceiveDamage(float DamageAmount)
 
 void ASlashCharacter::UpdateHealthBar()
 {
+	if (HUD)
+		HUD->GetSlashOverlay()->SetHealthPercentage(Attributes->GetHealthPercent());
 }

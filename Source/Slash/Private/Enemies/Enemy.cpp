@@ -219,7 +219,7 @@ void AEnemy::ActuallyReceiveDamage(float DamageAmount)
 void AEnemy::UpdateHealthBar()
 {
 	if (HealthBar)
-		HealthBar->SetPercentage(Attributes->getHealthPercent());
+		HealthBar->SetPercentage(Attributes->GetHealthPercent());
 }
 
 //bool AEnemy::IsAwareOfCharacter()

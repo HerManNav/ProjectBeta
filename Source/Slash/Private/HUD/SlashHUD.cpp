@@ -20,14 +20,3 @@ void ASlashHUD::CreateSlashOverlayWidget()
 			SlashOverlay->AddToViewport();
 	}
 }
-
-void ASlashHUD::InitSlashOverlay()
-{
-	if (SlashOverlay)
-	{
-		SlashOverlay->SetHealthPercentage(1.f);
-		SlashOverlay->SetStaminaPercentage(0.8f);
-		SlashOverlay->SetCoinsAmount(0);
-		SlashOverlay->SetSoulsAmount(0);
-	}
-}
