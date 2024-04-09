@@ -87,18 +87,18 @@ private:
 	/** Combat */
 	void CheckCombat();
 	bool ShouldLoseInterest();
-	bool IsCharacterOutOfRange();
+	bool IsTargetOutOfRange();
+	bool IsTargetAttackable();
 	bool IsCharacterOutOfAttackRange();
 	bool IsCharacterInsideAttackRange();
 
 	bool CanSee();
 	bool HasAlreadySeenTarget();
-	bool IsPawnMainCharacter(APawn* Pawn);
+	bool IsPawnAnAttackableCharacter(APawn* Pawn);
 	bool IsCharacterInsideCombatRange(APawn* Pawn);
 	void SetCombatTarget(AActor* target);
 
 	void LoseInterest();
-	void KeepPatrolling();
 	bool ShouldChaseCurrentTarget();
 	void ChaseCurrentTarget();
 	void SetAttackTimer();

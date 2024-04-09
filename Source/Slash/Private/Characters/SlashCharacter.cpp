@@ -55,7 +55,7 @@ void ASlashCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Tags.Add(FName("SlashCharacter"));
+	Tags.Add(FName("AttackableCharacter"));
 
 	InitCameraController();
 	InitMappingContext();
@@ -80,7 +80,8 @@ void ASlashCharacter::InitMappingContext()
 	{
 		if (EnhancedInputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			EnhancedInputSubsystem->AddMappingContext(EchoMappingContext, 0);
+			EnhancedInputSubsystem->AddMappingContext(ActionsMappingContext, 0);
+			EnhancedInputSubsystem->AddMappingContext(LookMappingContext, 0);
 		}
 	}
 }
@@ -122,7 +123,7 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 void ASlashCharacter::DisableAllInput()
 {
-	EnhancedInputSubsystem->RemoveMappingContext(EchoMappingContext);
+	EnhancedInputSubsystem->RemoveMappingContext(ActionsMappingContext);
 }
 
 float ASlashCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -246,6 +247,8 @@ void ASlashCharacter::Die()
 
 	DisableCollisionsToDie();
 	DisableAllInput();
+
+	Tags.Remove(FName("AttackableCharacter"));
 
 	PlayDeathMontage();
 }

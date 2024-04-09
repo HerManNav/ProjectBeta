@@ -245,7 +245,7 @@ void AEnemy::PawnSeen(APawn* Pawn)
 {
 	if (!CanSee() || HasAlreadySeenTarget()) return;
 
-	if (IsPawnMainCharacter(Pawn) && IsCharacterInsideCombatRange(Pawn))
+	if (IsPawnAnAttackableCharacter(Pawn) && IsCharacterInsideCombatRange(Pawn))
 	{
 		ShowHealthBar();
 
@@ -267,9 +267,9 @@ bool AEnemy::HasAlreadySeenTarget()
 	return EnemyState > EEnemyState::EES_Patrolling;
 }
 
-bool AEnemy::IsPawnMainCharacter(APawn* Pawn)
+bool AEnemy::IsPawnAnAttackableCharacter(APawn* Pawn)
 {
-	return Pawn->ActorHasTag(FName("SlashCharacter"));		// Casting is very expensive to be performed multiple times (ASlashCharacter* character = Cast<ASlashCharacter>(pawn)), so we use tags instead to check to pawn type!
+	return Pawn->ActorHasTag(FName("AttackableCharacter"));		// Casting is very expensive to be performed multiple times (ASlashCharacter* character = Cast<ASlashCharacter>(pawn)), so we use tags instead to check to pawn type!
 }
 
 bool AEnemy::IsCharacterInsideCombatRange(APawn* Pawn)
@@ -299,8 +299,8 @@ void AEnemy::CheckCombat()
 	{
 		ClearAttackTimer();
 
+		HideHealthBar();
 		LoseInterest();
-		KeepPatrolling();
 	}
 	else if (ShouldChaseCurrentTarget())
 	{
@@ -320,22 +320,18 @@ void AEnemy::CheckCombat()
 
 bool AEnemy::ShouldLoseInterest()
 {
-	return IsCharacterOutOfRange() && !IsEngaged();
+	return IsTargetOutOfRange() && !IsEngaged() ||
+		   !IsTargetAttackable();
 }
 
-bool AEnemy::IsCharacterOutOfRange()
+bool AEnemy::IsTargetOutOfRange()
 {
 	return !IsActorWithinRadius(CombatTarget, CombatRadius);
 }
 
-bool AEnemy::IsCharacterOutOfAttackRange()
+bool AEnemy::IsTargetAttackable()
 {
-	return !IsCharacterInsideAttackRange();
-}
-
-bool AEnemy::IsCharacterInsideAttackRange()
-{
-	return IsActorWithinRadius(CombatTarget, AttackRadius);
+	return CombatTarget->ActorHasTag(FName("AttackableCharacter"));
 }
 
 void AEnemy::ClearAttackTimer()
@@ -346,11 +342,7 @@ void AEnemy::ClearAttackTimer()
 void AEnemy::LoseInterest()
 {
 	CombatTarget = nullptr;
-	HideHealthBar();
-}
 
-void AEnemy::KeepPatrolling()
-{
 	ResetFocalPoint();
 
 	EnemyState = EEnemyState::EES_Patrolling;
@@ -358,10 +350,19 @@ void AEnemy::KeepPatrolling()
 	MoveToTarget(CurrentPatrolTarget);
 }
 
-
 bool AEnemy::ShouldChaseCurrentTarget()
 {
 	return IsCharacterOutOfAttackRange() && !IsChasing() && !IsEngaged();
+}
+
+bool AEnemy::IsCharacterOutOfAttackRange()
+{
+	return !IsCharacterInsideAttackRange();
+}
+
+bool AEnemy::IsCharacterInsideAttackRange()
+{
+	return IsActorWithinRadius(CombatTarget, AttackRadius);
 }
 
 void AEnemy::ChaseCurrentTarget()
@@ -387,7 +388,6 @@ void AEnemy::SetAttackTimer()
 
 void AEnemy::Attack()
 {
-	Super::Attack();
 	if (PlayAttackingMontage() != -1)
 	{
 		EnemyState = EEnemyState::EES_Engaged;

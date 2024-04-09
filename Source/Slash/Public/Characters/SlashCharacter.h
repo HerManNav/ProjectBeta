@@ -84,8 +84,11 @@ protected:
 
 	TObjectPtr<UEnhancedInputLocalPlayerSubsystem> EnhancedInputSubsystem;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputMappingContext> EchoMappingContext;
+	UPROPERTY(EditAnywhere, Category = Input)
+	TObjectPtr<UInputMappingContext> ActionsMappingContext;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	TObjectPtr<UInputMappingContext> LookMappingContext;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputAction> MoveAction;
