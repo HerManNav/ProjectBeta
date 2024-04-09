@@ -3,6 +3,7 @@
 
 #include "Items/Item.h"
 #include "Characters/SlashCharacter.h"
+#include "Interfaces/PickupInterface.h"
 
 #include "Components/SphereComponent.h"
 #include "NiagaraComponent.h"
@@ -63,21 +64,27 @@ float AItem::TransformedCos()
 
 void AItem::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	ASlashCharacter* SlashCharacter = Cast<ASlashCharacter>(OtherActor);
-	if (SlashCharacter)
-	{
-		SlashCharacter->SetOverlappingItem(this);
-	}
+	if (!CanActorPickup(OtherActor)) return;
+
+	IPickupInterface* PickupInterface = Cast<IPickupInterface>(OtherActor);
+	if (PickupInterface)
+		PickupInterface->Execute_SetOverlappingItem(OtherActor, this);
 }
 
 void AItem::OnSphereOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	ASlashCharacter* SlashCharacter = Cast<ASlashCharacter>(OtherActor);
-	if (SlashCharacter)
-	{
-		SlashCharacter->SetOverlappingItem(nullptr);
-	}
+	if (!CanActorPickup(OtherActor)) return;
+
+	IPickupInterface* PickupInterface = Cast<IPickupInterface>(OtherActor);
+	if (PickupInterface)
+		PickupInterface->Execute_SetOverlappingItem(OtherActor, nullptr);
 }
+
+bool AItem::CanActorPickup(AActor* Actor)
+{
+	return Actor->ActorHasTag(FName("Character_CanPickup"));
+}
+
 
 void AItem::SetGenerateOverlapEvents(bool enable)
 {

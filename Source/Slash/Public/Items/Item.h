@@ -36,6 +36,7 @@ protected:
 	void AttachToComponentAndSocket(USceneComponent* InParent, const FName& InSocketName);
 	void PlaySound(USoundBase* Sound, FVector Location);
 	void DisableSphereCollision();
+	bool CanActorPickup(AActor* Actor);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sine Parameters")
 	float Amplitude = 0.25f;
@@ -65,6 +66,8 @@ protected:
 	/** State */
 
 	EItemState ItemState = EItemState::EIS_Hovering;
+
+	float Value = 0.f;
 
 	/** Components */
 

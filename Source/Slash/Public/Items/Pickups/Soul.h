@@ -4,36 +4,34 @@
 
 #include "CoreMinimal.h"
 #include "Items/Item.h"
-#include "Treasure.generated.h"
-
-class USoundBase;
+#include "Soul.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class SLASH_API ATreasure : public AItem
+class SLASH_API ASoul : public AItem
 {
 	GENERATED_BODY()
 
 public:
 
-	ATreasure();
+	ASoul();
+
+	virtual void BeginPlay() override;
 
 protected:
 
 	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 
-	void PlayPickupSound();
+	void PlayPickupParticles();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Treasure)
-	int32 GoldValue;
+	int32 SoulValue;
 
-	UPROPERTY(EditAnywhere, Category = Sound)
-	TObjectPtr<USoundBase> PickupSound;
+	UPROPERTY(EditAnywhere)
+	int32 MinValue = 5.f;
 
-public:
-
-	FORCEINLINE int32 GetGoldValue() { return GoldValue; }
+	UPROPERTY(EditAnywhere)
+	int32 MaxValue = 10.f;
 
 };

@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
 #include "InputActionValue.h"
-#include "CharacterTypes.h"
+#include "Interfaces/PickupInterface.h"
 
 #include "SlashCharacter.generated.h"
 
@@ -22,7 +22,7 @@ class AItem;
 class ASlashHUD;
 
 UCLASS()
-class SLASH_API ASlashCharacter : public ABaseCharacter
+class SLASH_API ASlashCharacter : public ABaseCharacter, public IPickupInterface
 {
 	GENERATED_BODY()
 
@@ -37,6 +37,12 @@ public:
 	/** <IHitInterface> */
 	virtual void GetHit_Implementation(const FVector& HitPoint) override;
 	/** </IHitInterface> */
+
+	/** <IPickupInterface */
+	virtual void SetOverlappingItem_Implementation(AItem* Item) override;
+	virtual void PickupTreasure_Implementation(AItem* Item) override;
+	virtual void PickupSoul_Implementation(AItem* Item) override;
+	/** </IPickupInterface */
 
 protected:
 

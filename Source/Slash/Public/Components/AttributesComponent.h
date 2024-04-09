@@ -24,6 +24,10 @@ protected:
 
 private:
 
+	int32 GoldAmount = 0;
+
+	int32 SoulsAmount = 0;
+
 	UPROPERTY(EditAnywhere, Category = Attributes, meta = (ClampMin = "0"))
 	float Health = 100.f;
 
@@ -44,24 +48,29 @@ private:
 
 public:
 
+	bool IsAlive();
+	void ReceiveDamage(float damage);
+	void AddGold(int32 InGoldAmount);
+	void AddSouls(int32 InSoulsAmount);
+
 	/*
 	* Getters and setters
 	*/
 
-	float GetMaxHealth() { return MaxHealth; }
+	FORCEINLINE float GetMaxHealth() { return MaxHealth; }
 
-	bool IsAlive() { return Health > 0.f; }
+	FORCEINLINE float GetHealthPercent() { return Health / MaxHealth; }
 
-	void ReceiveDamage(float damage) { Health = FMath::Clamp(Health - damage, 0.f, MaxHealth); }
+	FORCEINLINE float GetWalkingSpeedUnequipped() { return WalkingSpeedUnequipped; }
 
-	float GetHealthPercent() { return Health / MaxHealth; }
+	FORCEINLINE float GetRunningSpeedUnequipped() { return RunningSpeedUnequipped; }
 
-	float GetWalkingSpeedUnequipped() { return WalkingSpeedUnequipped; }
+	FORCEINLINE float GetWalkingSpeedEquipped() { return WalkingSpeedEquipped; }
 
-	float GetRunningSpeedUnequipped() { return RunningSpeedUnequipped; }
+	FORCEINLINE float GetRunningSpeedEquipped() { return RunningSpeedEquipped; }
 
-	float GetWalkingSpeedEquipped() { return WalkingSpeedEquipped; }
+	FORCEINLINE int32 GetGoldAmount() { return GoldAmount; }
 
-	float GetRunningSpeedEquipped() { return RunningSpeedEquipped; }
+	FORCEINLINE int32 GetSoulsAmount() { return SoulsAmount; }
 
 };

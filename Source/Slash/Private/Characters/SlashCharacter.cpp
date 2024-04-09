@@ -3,6 +3,8 @@
 
 #include "Characters/SlashCharacter.h"
 #include "Items/Weapons/Weapon.h"
+#include "Items/Pickups/Treasure.h"
+#include "Items/Pickups/Soul.h"
 #include "Components/AttributesComponent.h"
 #include "HUD/SlashHUD.h"
 #include "HUD/SlashOverlay.h"
@@ -56,6 +58,7 @@ void ASlashCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	Tags.Add(FName("AttackableCharacter"));
+	Tags.Add(FName("Character_CanPickup"));
 
 	InitCameraController();
 	InitMappingContext();
@@ -295,4 +298,29 @@ void ASlashCharacter::Attack()
 void ASlashCharacter::AttackEnd()
 {
 	ActionState = EActionState::EAS_Unoccupied;
+}
+
+/*
+* Pickup 
+*/
+
+void ASlashCharacter::SetOverlappingItem_Implementation(AItem* Item)
+{
+	OverlappingItem = Item;
+	UE_LOG(LogTemp, Warning, TEXT("HEY INSIDE SlashCharacter SetOverlappingItem_Implementation!"))
+}
+
+void ASlashCharacter::PickupTreasure_Implementation(AItem* Item)
+{
+	ATreasure* Treasure = Cast<ATreasure>(Item);
+	if (Treasure)
+	{
+		Attributes->AddGold(Treasure->GetGoldValue());
+		HUD->GetSlashOverlay()->SetCoinsAmount(Attributes->GetGoldAmount());
+	}
+}
+
+void ASlashCharacter::PickupSoul_Implementation(AItem* Item)
+{
+	UE_LOG(LogTemp, Warning, TEXT("HEY INSIDE SlashCharacter PickupSoul_Implementation!"))
 }
