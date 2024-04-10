@@ -6,28 +6,31 @@ So far, this full set of features has been implemented in C++:
   - Character (input-controlled, both keyboard and Gamepad):
     - Walk/run toggle
     - Jump
+    - Dodge
     - Equip weapons
     - Attack
     - Health & Death
+    - Gold & Souls (HUD & inventory)
   - Enemies (AI-controlled):
     - Patrol
-    - Chasing character when seen
+    - Chasing the character when seen
     - Attack
     - Health & Death
 
 - Combat:
-  - Box trace to detect collisions for different kind of weapons
+  - Box trace to detect collisions for different kinds of weapons
   - Directional hits detection to play different animations
   - Enemy's translation Motion Warping to stay closer to character when attacking (used to set the difficulty)
   - Enemy's rotation Motion Warping to face character when attacking
+  - Enemy's XP points spawned when killed (Souls)
 
 - Death:
-  - Enemies random animation deaths
+  - Main character and Enemies random animation deaths
   - Dithering & particles before destroying enemy instances
  
 Besides, animations, SFx, and particles have been included for:
-  - Hits
-  - Steps, armor and main character exertion
+  - Hits, steps, armor, and exertions for main character and NPC
+  - Items: Treasures (for Gold), Souls (for XP)
 
 Some destructibles / Geometry Collections have been also added to the repo.
 
