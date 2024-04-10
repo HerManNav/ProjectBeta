@@ -40,7 +40,7 @@ void AWeapon::Equip(USceneComponent* Parent, FName SocketName, AActor* NewOwner,
 	SetInstigator(NewInstigator);
 
 	AttachToComponentAndSocket(Parent, SocketName);
-	PlaySound(EquipSound, GetActorLocation());
+	PlayPickupSound();
 	DisableSphereCollision();
 	DeactivateNiagara();
 

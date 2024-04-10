@@ -24,8 +24,6 @@ protected:
 
 	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 
-	void PlayPickupParticles();
-
 	int32 SoulAmount;
 
 	UPROPERTY(EditAnywhere)

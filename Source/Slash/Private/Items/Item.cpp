@@ -40,12 +40,6 @@ void AItem::AttachToComponentAndSocket(USceneComponent* InParent, const FName& I
 	GetRootComponent()->AttachToComponent(InParent, TransformRules, InSocketName);
 }
 
-void AItem::PlaySound(USoundBase* Sound, FVector Location)
-{
-	if (Sound)
-		UGameplayStatics::PlaySoundAtLocation(this, Sound, Location);
-}
-
 void AItem::DisableSphereCollision()
 {
 	if (Sphere)
@@ -100,4 +94,28 @@ void AItem::Tick(float DeltaTime)
 	{
 		AddActorWorldOffset(FVector(0.f, 0.f, TransformedSin()));
 	}
+}
+
+/*
+* Sound
+*/
+
+void AItem::PlaySound(USoundBase* Sound, FVector Location)
+{
+	if (Sound)
+		UGameplayStatics::PlaySoundAtLocation(this, Sound, Location);
+}
+
+void AItem::PlayPickupSound()
+{
+	PlaySound(PickupSound, GetActorLocation());
+}
+
+/*
+* Particles
+*/
+
+void AItem::PlayPickupParticles()
+{
+
 }

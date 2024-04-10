@@ -8,6 +8,7 @@
 
 class USphereComponent;
 class UNiagaraComponent;
+class USoundBase;
 
 enum class EItemState : uint8
 {
@@ -35,6 +36,8 @@ protected:
 
 	void AttachToComponentAndSocket(USceneComponent* InParent, const FName& InSocketName);
 	void PlaySound(USoundBase* Sound, FVector Location);
+	void PlayPickupSound();
+	void PlayPickupParticles();
 	void DisableSphereCollision();
 	bool CanActorPickup(AActor* Actor);
 
@@ -66,6 +69,12 @@ protected:
 	/** State */
 
 	EItemState ItemState = EItemState::EIS_Hovering;
+
+	UPROPERTY(EditAnywhere, Category = "Pickup|Sound")
+	TObjectPtr<USoundBase> PickupSound;
+
+	UPROPERTY(EditAnywhere, Category = "Pickup|Particles")
+	TObjectPtr<UNiagaraComponent> PickupParticles;
 
 	/** Components */
 

@@ -25,12 +25,8 @@ void ASoul::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 	{
 		PickupInterface->Execute_PickupSoul(OtherActor, this);
 
-		//PlayPickupSound();
+		PlayPickupSound();
 		PlayPickupParticles();
 		Destroy();
 	}
-}
-
-void ASoul::PlayPickupParticles()
-{
 }

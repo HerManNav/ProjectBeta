@@ -6,7 +6,6 @@
 #include "Items/Item.h"
 #include "Weapon.generated.h"
 
-class USoundBase;
 class UBoxComponent;
 
 /**
@@ -73,17 +72,16 @@ private:
 
 	TArray<AActor*> ActorsToIgnore;
 
-	UPROPERTY(EditAnywhere)
-	USoundBase* EquipSound;
+	/** Components */
 
 	UPROPERTY(VisibleAnywhere)
-	UBoxComponent* WeaponBox;
+	TObjectPtr<UBoxComponent> WeaponBox;
 
 	UPROPERTY(VisibleAnywhere)
-	USceneComponent* BoxTraceStart;
+	TObjectPtr<USceneComponent> BoxTraceStart;
 
 	UPROPERTY(VisibleAnywhere)
-	USceneComponent* BoxTraceEnd;
+	TObjectPtr<USceneComponent> BoxTraceEnd;
 
 public:
 
