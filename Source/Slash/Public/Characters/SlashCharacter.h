@@ -70,6 +70,7 @@ protected:
 	void Look(const FInputActionValue& Value);
 	void Equip();
 	void ToggleWalk();
+	void DodgeForward();
 
 	/** State */
 
@@ -114,6 +115,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputAction> AttackAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<UInputAction> DodgeForwardAction;
 
 private:
 
@@ -155,6 +158,11 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = Hair)
 	TObjectPtr<UGroomComponent> Eyebrows;
+
+	/** Montages */
+
+	UPROPERTY(EditAnywhere, Category = "Montages|Movement")
+	TObjectPtr<UAnimMontage> DodgeForwardMontage;
 
 public:
 

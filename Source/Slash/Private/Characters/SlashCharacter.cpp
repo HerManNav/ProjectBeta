@@ -117,6 +117,7 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASlashCharacter::Look);
 		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Completed, this, &ASlashCharacter::Equip);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &ASlashCharacter::Attack);
+		EnhancedInputComponent->BindAction(DodgeForwardAction, ETriggerEvent::Completed, this, &ASlashCharacter::DodgeForward);
 
 		EnhancedInputComponent->BindAction(ToggleWalkAction, ETriggerEvent::Completed, this, &ASlashCharacter::ToggleWalk);
 
@@ -206,6 +207,12 @@ void ASlashCharacter::UpdateMaxGroundSpeed()
 		else
 			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetRunningSpeedEquipped();
 	}
+}
+
+void ASlashCharacter::DodgeForward()
+{
+	if (DodgeForwardMontage)
+		PlayMontage(DodgeForwardMontage, DodgeForwardMontage->GetSectionName(0));
 }
 
 /*

@@ -5,12 +5,9 @@
 #include "Interfaces/PickupInterface.h"
 
 #include "Components/SphereComponent.h"
-#include "Kismet/GameplayStatics.h"
 
 ATreasure::ATreasure()
 {
-	PrimaryActorTick.bCanEverTick = true;
-
 	Sphere->SetGenerateOverlapEvents(false);
 }
 
