@@ -8,6 +8,8 @@
 
 #include "Enemy.generated.h"
 
+class ASoul;
+
 class UHealthBarComponent;
 class UNiagaraComponent;
 
@@ -121,6 +123,8 @@ private:
 	void FadeOut();
 	void DecreaseDitheringOnMaterial();
 	void ActivateDeathPetalsAnim();
+	void SetSpawnSoulTimer();
+	void SpawnSoul();
 
 	/** Exposed */
 
@@ -204,4 +208,10 @@ private:
 
 	float DeathPetals_initialDelay = 3.f;	// Time before start to play the DeathPetals particles
 
+	/** Death Souls */
+
+	FTimerHandle SpawnSoulTimer;
+
+	UPROPERTY(EditAnywhere, Category = "Souls")
+	TSubclassOf<ASoul> SoulClassToSpawn;
 };

@@ -6,7 +6,7 @@
 
 ASoul::ASoul()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 }
 
 void ASoul::BeginPlay()

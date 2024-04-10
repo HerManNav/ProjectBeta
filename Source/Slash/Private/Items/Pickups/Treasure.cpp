@@ -24,7 +24,6 @@ void ATreasure::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 		PickupInterface->Execute_PickupTreasure(OtherActor, this);
 		
 		PlayPickupSound();
-		PlayPickupParticles();
 		Destroy();
 	}
 }

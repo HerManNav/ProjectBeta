@@ -3,6 +3,7 @@
 
 #include "Enemies/Enemy.h"
 #include "Items/Weapons/Weapon.h"
+#include "Items/Pickups/Soul.h"
 
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -129,6 +130,7 @@ void AEnemy::Die()
 		StopAIController();
 		DisableCollisionsToDie();
 		FadeOut();
+		SetSpawnSoulTimer();
 
 		EnemyState = EEnemyState::EES_Dead;
 	}
@@ -183,6 +185,28 @@ void AEnemy::ActivateDeathPetalsAnim()
 {
 	if (DeathPetals)
 		DeathPetals->Activate(true);
+}
+
+void AEnemy::SetSpawnSoulTimer()
+{
+	float TimeToSpawn = Dithering_initialDelay + Dithering_totalTime - 2.f;
+	GetWorldTimerManager().SetTimer(SpawnSoulTimer, this, &AEnemy::SpawnSoul, TimeToSpawn);
+}
+
+void AEnemy::SpawnSoul()
+{
+	if (GetWorld() && SoulClassToSpawn)
+	{
+		FVector CenterLocation = GetMesh()->GetBoneLocation(FName("Spine"));
+		FVector LocationToSpawn = FVector(CenterLocation.X, CenterLocation.Y, CenterLocation.Z + 75.f);
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		ASoul* SpawnedSoul = GetWorld()->SpawnActor<ASoul>(SoulClassToSpawn,
+														   LocationToSpawn,
+														   FRotator::ZeroRotator,
+														   SpawnParams);
+	}
 }
 
 /*
