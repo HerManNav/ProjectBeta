@@ -2,7 +2,6 @@
 
 
 #include "Items/Pickups/Treasure.h"
-#include "Characters/SlashCharacter.h"
 #include "Interfaces/PickupInterface.h"
 
 #include "Components/SphereComponent.h"

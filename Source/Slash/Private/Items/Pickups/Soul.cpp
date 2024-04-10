@@ -6,11 +6,14 @@
 
 ASoul::ASoul()
 {
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void ASoul::BeginPlay()
 {
-	SoulValue = FMath::RandRange(MinValue, MaxValue);
+	Super::BeginPlay();
+
+	SoulAmount = FMath::RandRange(MinSouls, MaxSouls);
 }
 
 void ASoul::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

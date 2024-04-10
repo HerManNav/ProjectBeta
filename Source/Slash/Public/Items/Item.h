@@ -67,8 +67,6 @@ protected:
 
 	EItemState ItemState = EItemState::EIS_Hovering;
 
-	float Value = 0.f;
-
 	/** Components */
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

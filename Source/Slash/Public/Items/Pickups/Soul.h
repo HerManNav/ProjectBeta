@@ -26,12 +26,15 @@ protected:
 
 	void PlayPickupParticles();
 
-	int32 SoulValue;
+	int32 SoulAmount;
 
 	UPROPERTY(EditAnywhere)
-	int32 MinValue = 5.f;
+	int32 MinSouls = 5;
 
 	UPROPERTY(EditAnywhere)
-	int32 MaxValue = 10.f;
+	int32 MaxSouls = 10;
 
+public:
+
+	FORCEINLINE int32 GetSoulAmount() { return SoulAmount; }
 };

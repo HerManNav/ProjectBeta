@@ -307,7 +307,6 @@ void ASlashCharacter::AttackEnd()
 void ASlashCharacter::SetOverlappingItem_Implementation(AItem* Item)
 {
 	OverlappingItem = Item;
-	UE_LOG(LogTemp, Warning, TEXT("HEY INSIDE SlashCharacter SetOverlappingItem_Implementation!"))
 }
 
 void ASlashCharacter::PickupTreasure_Implementation(AItem* Item)
@@ -322,5 +321,10 @@ void ASlashCharacter::PickupTreasure_Implementation(AItem* Item)
 
 void ASlashCharacter::PickupSoul_Implementation(AItem* Item)
 {
-	UE_LOG(LogTemp, Warning, TEXT("HEY INSIDE SlashCharacter PickupSoul_Implementation!"))
+	ASoul* Soul = Cast<ASoul>(Item);
+	if (Soul)
+	{
+		Attributes->AddSouls(Soul->GetSoulAmount());
+		HUD->GetSlashOverlay()->SetSoulsAmount(Attributes->GetSoulsAmount());
+	}
 }
