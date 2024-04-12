@@ -30,9 +30,10 @@ public:
 
 	ASlashCharacter();
 
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	virtual void Tick(float DeltaTime) override;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+	
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	/** <IHitInterface> */
 	virtual void GetHit_Implementation(const FVector& HitPoint) override;
@@ -75,10 +76,30 @@ protected:
 	/** State */
 
 	void UpdateMaxGroundSpeed();
+	bool IsUnoccupied();
+	bool IsHitReacting();
+	bool IsDodging();
+	bool IsAttacking();
+	bool IsDead();
+
+	bool IsUnequipped();
+	bool IsEquipped();
+
+	bool CanDodge();
+	bool HasEnoughStaminaToDodge();
+	void ConsumeStamina();
+	void RecoverStamina(float RecoverAmount);
+
+	/** Exposed */
+
+	UFUNCTION(BlueprintCallable)
+	void DodgeEnd();
 
 	/*
 	* Variables
 	*/
+
+	/** State */
 
 	bool bWalking;
 
@@ -117,6 +138,14 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputAction> DodgeForwardAction;
+
+	/** Stamina */
+
+	UPROPERTY(EditAnywhere, Category = "Stamina|Dodge")
+	float DodgeStaminaConsumption = 20.f;
+
+	UPROPERTY(EditAnywhere, Category = "Stamina")
+	float StaminaRecoverRate_Secs = 3.f;
 
 private:
 

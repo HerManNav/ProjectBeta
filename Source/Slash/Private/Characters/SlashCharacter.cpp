@@ -130,14 +130,9 @@ void ASlashCharacter::DisableAllInput()
 	EnhancedInputSubsystem->RemoveMappingContext(ActionsMappingContext);
 }
 
-float ASlashCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
-{
-	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-}
-
 void ASlashCharacter::Move(const FInputActionValue& Value)
 {	
-	if (ActionState == EActionState::EAS_Attacking) return;
+	if (IsAttacking()) return;
 
 	const FVector2D Amount = Value.Get<FVector2D>();
 	if (Controller)
@@ -211,13 +206,46 @@ void ASlashCharacter::UpdateMaxGroundSpeed()
 
 void ASlashCharacter::DodgeForward()
 {
-	if (DodgeForwardMontage)
+	if (CanDodge())
+	{
+		ActionState = EActionState::EAS_Dodging;
+
+		ConsumeStamina();
 		PlayMontage(DodgeForwardMontage, DodgeForwardMontage->GetSectionName(0));
+	}
+}
+
+bool ASlashCharacter::CanDodge()
+{
+	return DodgeForwardMontage && 
+		!IsDodging() && 
+		HasEnoughStaminaToDodge();
+}
+
+bool ASlashCharacter::HasEnoughStaminaToDodge()
+{
+	return Attributes->GetStamina() > DodgeStaminaConsumption;
+}
+
+void ASlashCharacter::ConsumeStamina()
+{
+	Attributes->ConsumeStamina(DodgeStaminaConsumption);
+	HUD->GetSlashOverlay()->SetStaminaPercentage(Attributes->GetStaminaPercent());
+}
+
+void ASlashCharacter::DodgeEnd()
+{
+	ActionState = EActionState::EAS_Unoccupied;
 }
 
 /*
 * Hit / Take damage 
 */
+
+float ASlashCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+}
 
 void ASlashCharacter::GetHit_Implementation(const FVector& HitPoint)
 {
@@ -287,8 +315,7 @@ int16 ASlashCharacter::PlayDeathMontage()
 
 bool ASlashCharacter::CanAttack()
 {
-	return	EquipState != EEquipState::EES_Unequipped &&
-			ActionState == EActionState::EAS_Unoccupied;
+	return	IsEquipped() && IsUnoccupied();
 }
 
 void ASlashCharacter::Attack()
@@ -334,4 +361,54 @@ void ASlashCharacter::PickupSoul_Implementation(AItem* Item)
 		Attributes->AddSouls(Soul->GetSoulAmount());
 		HUD->GetSlashOverlay()->SetSoulsAmount(Attributes->GetSoulsAmount());
 	}
+}
+
+/*
+* General common methods
+*/
+
+bool ASlashCharacter::IsUnoccupied()
+{
+	return ActionState == EActionState::EAS_Unoccupied;
+}
+
+bool ASlashCharacter::IsHitReacting()
+{
+	return ActionState == EActionState::EAS_HitReacting;
+}
+
+bool ASlashCharacter::IsDodging()
+{
+	return ActionState == EActionState::EAS_Dodging;
+}
+
+bool ASlashCharacter::IsAttacking()
+{
+	return ActionState == EActionState::EAS_Attacking;
+}
+
+bool ASlashCharacter::IsDead()
+{
+	return ActionState == EActionState::EAS_Dead;
+}
+
+bool ASlashCharacter::IsUnequipped()
+{
+	return EquipState == EEquipState::EES_Unequipped;
+}
+
+bool ASlashCharacter::IsEquipped()
+{
+	return !IsUnequipped();
+}
+
+void ASlashCharacter::Tick(float DeltaTime)
+{
+	RecoverStamina(DeltaTime * StaminaRecoverRate_Secs);
+}
+
+void ASlashCharacter::RecoverStamina(float RecoverAmount)
+{
+	Attributes->RecoverStamina(RecoverAmount);
+	HUD->GetSlashOverlay()->SetStaminaPercentage(Attributes->GetStaminaPercent());
 }

@@ -18,10 +18,6 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-protected:
-
-	virtual void BeginPlay() override;
-
 private:
 
 	int32 GoldAmount = 0;
@@ -33,6 +29,12 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Attributes, meta = (ClampMin = "0"))
 	float MaxHealth = 100.f;
+
+	UPROPERTY(EditAnywhere, Category = Attributes, meta = (ClampMin = "0"))
+	float Stamina = 100.f;
+
+	UPROPERTY(EditAnywhere, Category = Attributes, meta = (ClampMin = "0"))
+	float MaxStamina = 100.f;
 
 	UPROPERTY(EditAnywhere, Category = Movement)
 	float WalkingSpeedUnequipped = 200.f;
@@ -49,7 +51,11 @@ private:
 public:
 
 	bool IsAlive();
-	void ReceiveDamage(float damage);
+
+	void ReceiveDamage(float Damage);
+	void ConsumeStamina(float StaminaConsumption);
+	void RecoverStamina(float StaminaRecover);
+
 	void AddGold(int32 InGoldAmount);
 	void AddSouls(int32 InSoulsAmount);
 
@@ -57,9 +63,11 @@ public:
 	* Getters and setters
 	*/
 
-	FORCEINLINE float GetMaxHealth() { return MaxHealth; }
-
 	FORCEINLINE float GetHealthPercent() { return Health / MaxHealth; }
+
+	FORCEINLINE float GetStamina() { return Stamina; }
+
+	FORCEINLINE float GetStaminaPercent() { return Stamina / MaxStamina; }
 
 	FORCEINLINE float GetWalkingSpeedUnequipped() { return WalkingSpeedUnequipped; }
 
