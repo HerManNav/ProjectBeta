@@ -76,6 +76,8 @@ protected:
 	/** State */
 
 	void UpdateMaxGroundSpeed();
+	void UpdateStaminaBar();
+
 	bool IsUnoccupied();
 	bool IsHitReacting();
 	bool IsDodging();
@@ -139,13 +141,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputAction> DodgeForwardAction;
 
-	/** Stamina */
+	/** Dodge */
 
-	UPROPERTY(EditAnywhere, Category = "Stamina|Dodge")
+	UPROPERTY(EditAnywhere, Category = "Dodge|Stamina")
 	float DodgeStaminaConsumption = 20.f;
 
-	UPROPERTY(EditAnywhere, Category = "Stamina")
-	float StaminaRecoverRate_Secs = 3.f;
 
 private:
 

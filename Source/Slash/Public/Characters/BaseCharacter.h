@@ -39,6 +39,10 @@ protected:
 	* Methods
 	*/
 
+	/** State */
+
+	void RecoverHealth(float RecoverAmount);
+
 	/** Attack */
 	virtual void Attack() {};
 	virtual bool CanAttack() { return false; };

@@ -23,6 +23,17 @@ ABaseCharacter::ABaseCharacter()
 void ABaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	RecoverHealth(DeltaTime * Attributes->GetHealthRecoveryRate());
+}
+
+void ABaseCharacter::RecoverHealth(float RecoverAmount)
+{
+	if (Attributes && !Attributes->IsHealthMaxedOut())
+	{
+		Attributes->RecoverHealth(RecoverAmount);
+		UpdateHealthBar();
+	}
 }
 
 void ABaseCharacter::BeginPlay()

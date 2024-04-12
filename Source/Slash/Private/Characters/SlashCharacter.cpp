@@ -273,12 +273,6 @@ void ASlashCharacter::ActuallyReceiveDamage(float DamageAmount)
 	Super::ActuallyReceiveDamage(DamageAmount);
 }
 
-void ASlashCharacter::UpdateHealthBar()
-{
-	if (HUD)
-		HUD->GetSlashOverlay()->SetHealthPercentage(Attributes->GetHealthPercent());
-}
-
 void ASlashCharacter::Die()
 {
 	ActionState = EActionState::EAS_Dead;
@@ -404,11 +398,28 @@ bool ASlashCharacter::IsEquipped()
 
 void ASlashCharacter::Tick(float DeltaTime)
 {
-	RecoverStamina(DeltaTime * StaminaRecoverRate_Secs);
+	Super::Tick(DeltaTime);
+
+	RecoverStamina(DeltaTime * Attributes->GetStaminaRecoveryRate());
 }
 
 void ASlashCharacter::RecoverStamina(float RecoverAmount)
 {
-	Attributes->RecoverStamina(RecoverAmount);
-	HUD->GetSlashOverlay()->SetStaminaPercentage(Attributes->GetStaminaPercent());
+	if (Attributes && !Attributes->IsStaminaMaxedOut())
+	{
+		Attributes->RecoverStamina(RecoverAmount);
+		UpdateStaminaBar();
+	}
+}
+
+void ASlashCharacter::UpdateHealthBar()
+{
+	if (HUD)
+		HUD->GetSlashOverlay()->SetHealthPercentage(Attributes->GetHealthPercent());
+}
+
+void ASlashCharacter::UpdateStaminaBar()
+{
+	if (HUD)
+		HUD->GetSlashOverlay()->SetStaminaPercentage(Attributes->GetStaminaPercent());
 }
