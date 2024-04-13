@@ -236,7 +236,7 @@ void AEnemy::ActuallyReceiveDamage(float DamageAmount)
 
 void AEnemy::UpdateHealthBar()
 {
-	if (HealthBar)
+	if (HealthBar && Attributes)
 		HealthBar->SetPercentage(Attributes->GetHealthPercent());
 }
 
@@ -586,12 +586,12 @@ bool AEnemy::CanMoveToTarget(const AActor* Target)
 
 float AEnemy::GetPatrollingSpeed()
 {
-	return Attributes->GetWalkingSpeedEquipped();
+	return Attributes? Attributes->GetWalkingSpeedEquipped() : -1.f;
 }
 
 float AEnemy::GetChasingSpeed()
 {
-	return Attributes->GetRunningSpeedEquipped();
+	return Attributes? Attributes->GetRunningSpeedEquipped() : -1.f;
 }
 
 bool AEnemy::IsActorWithinRadius(AActor* Actor, float Radius)

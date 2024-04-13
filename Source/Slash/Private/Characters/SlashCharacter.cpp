@@ -188,6 +188,8 @@ void ASlashCharacter::ToggleWalk()
 
 void ASlashCharacter::UpdateMaxGroundSpeed()
 {
+	if (!Attributes) return;
+
 	if (bWalking)
 	{
 		if (EquipState == EEquipState::EES_Unequipped)
@@ -224,13 +226,16 @@ bool ASlashCharacter::CanDodge()
 
 bool ASlashCharacter::HasEnoughStaminaToDodge()
 {
-	return Attributes->GetStamina() > DodgeStaminaConsumption;
+	return Attributes? Attributes->GetStamina() > DodgeStaminaConsumption : false;
 }
 
 void ASlashCharacter::ConsumeStamina()
 {
-	Attributes->ConsumeStamina(DodgeStaminaConsumption);
-	HUD->GetSlashOverlay()->SetStaminaPercentage(Attributes->GetStaminaPercent());
+	if (Attributes && HUD)
+	{
+		Attributes->ConsumeStamina(DodgeStaminaConsumption);
+		HUD->GetSlashOverlay()->SetStaminaPercentage(Attributes->GetStaminaPercent());
+	}
 }
 
 void ASlashCharacter::DodgeEnd()
@@ -279,6 +284,7 @@ void ASlashCharacter::Die()
 
 	DisableCollisionsToDie();
 	DisableAllInput();
+	DisableAttributesRegen();
 
 	Tags.Remove(FName("AttackableCharacter"));
 
@@ -340,7 +346,7 @@ void ASlashCharacter::SetOverlappingItem_Implementation(AItem* Item)
 void ASlashCharacter::PickupTreasure_Implementation(AItem* Item)
 {
 	ATreasure* Treasure = Cast<ATreasure>(Item);
-	if (Treasure)
+	if (Treasure && Attributes && HUD)
 	{
 		Attributes->AddGold(Treasure->GetGoldValue());
 		HUD->GetSlashOverlay()->SetCoinsAmount(Attributes->GetGoldAmount());
@@ -350,7 +356,7 @@ void ASlashCharacter::PickupTreasure_Implementation(AItem* Item)
 void ASlashCharacter::PickupSoul_Implementation(AItem* Item)
 {
 	ASoul* Soul = Cast<ASoul>(Item);
-	if (Soul)
+	if (Soul && Attributes && HUD)
 	{
 		Attributes->AddSouls(Soul->GetSoulAmount());
 		HUD->GetSlashOverlay()->SetSoulsAmount(Attributes->GetSoulsAmount());
@@ -400,7 +406,8 @@ void ASlashCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	RecoverStamina(DeltaTime * Attributes->GetStaminaRecoveryRate());
+	if (Attributes)
+		RecoverStamina(DeltaTime * Attributes->GetStaminaRecoveryRate());
 }
 
 void ASlashCharacter::RecoverStamina(float RecoverAmount)
@@ -414,12 +421,12 @@ void ASlashCharacter::RecoverStamina(float RecoverAmount)
 
 void ASlashCharacter::UpdateHealthBar()
 {
-	if (HUD)
+	if (HUD && Attributes)
 		HUD->GetSlashOverlay()->SetHealthPercentage(Attributes->GetHealthPercent());
 }
 
 void ASlashCharacter::UpdateStaminaBar()
 {
-	if (HUD)
+	if (HUD && Attributes)
 		HUD->GetSlashOverlay()->SetStaminaPercentage(Attributes->GetStaminaPercent());
 }

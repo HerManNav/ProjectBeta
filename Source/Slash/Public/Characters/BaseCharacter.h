@@ -66,6 +66,7 @@ protected:
 	/** Death */
 	virtual void Die() {}
 	virtual void DisableCollisionsToDie();
+	virtual void DisableAttributesRegen();
 
 	/** Exposed */
 

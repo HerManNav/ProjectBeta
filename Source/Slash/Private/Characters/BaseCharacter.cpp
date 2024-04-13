@@ -24,7 +24,8 @@ void ABaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	RecoverHealth(DeltaTime * Attributes->GetHealthRecoveryRate());
+	if (Attributes)
+		RecoverHealth(DeltaTime * Attributes->GetHealthRecoveryRate());
 }
 
 void ABaseCharacter::RecoverHealth(float RecoverAmount)
@@ -64,7 +65,7 @@ void ABaseCharacter::GetHit_Implementation(const FVector& HitPoint)
 
 bool ABaseCharacter::HasSomeHealthRemaining()
 {
-	return Attributes->IsAlive();
+	return Attributes? Attributes->IsAlive() : false;
 }
 
 float ABaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -84,13 +85,19 @@ bool ABaseCharacter::CanTakeDamage()
 
 void ABaseCharacter::ActuallyReceiveDamage(float DamageAmount)
 {
-	Attributes->ReceiveDamage(DamageAmount);
+	if (Attributes)
+		Attributes->ReceiveDamage(DamageAmount);
 }
 
 void ABaseCharacter::DisableCollisionsToDie()
 {
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+}
+
+void ABaseCharacter::DisableAttributesRegen()
+{
+	Attributes = nullptr;
 }
 
 /*
