@@ -84,17 +84,25 @@
 **/Content/Maps/*
 **/Content/MedievalDungeon/*
 **/Content/Megascans/*
-**/Content/Mixamo/xbot/*
-**/Content/Mixamo/paladin/*
 **/Content/MSPresets/*
-**/Content/ParagonMinions/*
 **/Content/StarterContent/*
 **/Content/Weapon_Pack/*
 
 **/Binaries/*
 
-!**/Content/Mixamo/paladin/Rigs/
-!**/Content/Mixamo/xbot/Rigs/
-
 Content/Textures/NewMaterial.uasset
 Content/Textures/NewMaterial1.uasset
+
+# Whitelistings
+
+**/Content/Mixamo/xbot/*
+!**/Content/Mixamo/xbot/Rigs/
+**/Content/Mixamo/paladin/*
+!**/Content/Mixamo/paladin/Rigs/
+
+**/Content/ParagonMinions/*
+!**/Content/ParagonMinions/Characters/
+**/Content/ParagonMinions/Characters/*
+!**/Content/ParagonMinions/Characters/Buff/
+**/Content/ParagonMinions/Characters/Buff/*
+!**/Content/ParagonMinions/Characters/Buff/Buff_Black/
