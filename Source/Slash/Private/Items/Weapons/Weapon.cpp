@@ -94,7 +94,7 @@ void AWeapon::PerformBoxTrace(FHitResult& BoxHit)
 
 	UKismetSystemLibrary::BoxTraceSingle(	this,
 											Start, End, 
-											FVector(5.f, 5.f, 5.f), BoxTraceStart->GetComponentRotation(),
+											BoxTraceHalfExtent, BoxTraceStart->GetComponentRotation(),
 											ETraceTypeQuery::TraceTypeQuery1, false,
 											ActorsToIgnore,
 											bShowDebugBoxTrace ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,

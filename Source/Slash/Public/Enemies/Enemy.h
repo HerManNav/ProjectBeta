@@ -49,7 +49,7 @@ protected:
 	virtual void UpdateHealthBar() override;
 	/** </ABaseCharacter> */
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
 
 private:
@@ -81,7 +81,7 @@ private:
 	void SetFocalPointToActor(AActor* Actor = nullptr);
 	void ResetFocalPoint();
 
-	void MoveToTarget(const AActor* Target, float AcceptanceRadius = 15.f);
+	void MoveToTarget(const AActor* Target, float InAcceptanceRadius = 15.f);
 
 	float GetPatrollingSpeed();
 	float GetChasingSpeed();
@@ -158,6 +158,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat|Radius", meta = (AllowPrivateAccess = true))
 	float AttackRadius = 200.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat|Radius", meta= (AllowPrivateAccess = true))
+	float AcceptanceRadius = 15.f;
+
 	/** AI: Patrol */
 
 	UPROPERTY()
@@ -214,4 +217,7 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Souls")
 	TSubclassOf<ASoul> SoulClassToSpawn;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Souls")
+	FName BoneToSpawnSoul = "pelvis";
 };

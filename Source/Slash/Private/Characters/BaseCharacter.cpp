@@ -162,7 +162,7 @@ int16 ABaseCharacter::PlayRandomMontageSection(UAnimMontage* Montage, TArray<FNa
 void ABaseCharacter::ReactToHitBasedOnHitDirection(const FVector& HitPoint)
 {
 	FName DirectionName = GetHitDirection(HitPoint);
-	PlayMontage(HitMontage, DirectionName);
+	PlayMontage(HitReactMontage, DirectionName);
 }
 
 FName ABaseCharacter::GetHitDirection(const FVector& HitPoint)

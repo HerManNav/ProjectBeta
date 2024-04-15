@@ -93,7 +93,7 @@ void AEnemy::SpawnAndEquipWeapon()
 	{
 		Weapon = GetWorld()->SpawnActor<AWeapon>(WeaponClass);
 		if (Weapon && GetMesh())
-			Weapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
+			Weapon->Equip(GetMesh(), FName("WeaponSocket"), this, this);
 	}
 }
 
@@ -110,9 +110,12 @@ void AEnemy::Destroyed()
 void AEnemy::GetHit_Implementation(const FVector& HitPoint)
 {
 	if (IsAlive())
+	{
 		EnemyState = EEnemyState::EES_HitReacting;
 
-	ShowHealthBar();
+		GetWorldTimerManager().ClearAllTimersForObject(this);
+		ShowHealthBar();
+	}
 
 	Super::GetHit_Implementation(HitPoint);
 }
@@ -197,7 +200,7 @@ void AEnemy::SpawnSoul()
 {
 	if (GetWorld() && SoulClassToSpawn)
 	{
-		FVector CenterLocation = GetMesh()->GetBoneLocation(FName("Spine"));
+		FVector CenterLocation = GetMesh()->GetBoneLocation(BoneToSpawnSoul);
 		FVector LocationToSpawn = FVector(CenterLocation.X, CenterLocation.Y, CenterLocation.Z + 75.f);
 
 		FActorSpawnParameters SpawnParams;
@@ -393,7 +396,7 @@ void AEnemy::ChaseCurrentTarget()
 {
 	EnemyState = EEnemyState::EES_Chasing;
 	GetCharacterMovement()->MaxWalkSpeed = GetChasingSpeed();
-	MoveToTarget(CombatTarget, AttackRadius - 110.f);
+	MoveToTarget(CombatTarget, AcceptanceRadius);
 }
 
 bool AEnemy::CanAttack()
@@ -569,13 +572,13 @@ void AEnemy::ResetFocalPoint()
 	AIController->ClearFocus(EAIFocusPriority::Gameplay);
 }
 
-void AEnemy::MoveToTarget(const AActor* Target, float AcceptanceRadius)
+void AEnemy::MoveToTarget(const AActor* Target, float InAcceptanceRadius)
 {
 	if (!CanMoveToTarget(Target)) return;
 
 	FAIMoveRequest MoveRequest;
 	MoveRequest.SetGoalActor(Target);
-	MoveRequest.SetAcceptanceRadius(AcceptanceRadius);
+	MoveRequest.SetAcceptanceRadius(InAcceptanceRadius);
 	AIController->MoveTo(MoveRequest);
 }
 

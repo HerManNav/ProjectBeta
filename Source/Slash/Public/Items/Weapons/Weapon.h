@@ -41,10 +41,15 @@ protected:
 	* Variables
 	*/
 
-	/** Damage related members */
+	/** Tracing */
 
-	UPROPERTY(EditAnywhere, Category = "Debug|Box trace")
+	UPROPERTY(EditDefaultsOnly, Category = "Tracing")
+	FVector BoxTraceHalfExtent = FVector(5.f);
+
+	UPROPERTY(EditAnywhere, Category = "Tracing")
 	bool bShowDebugBoxTrace = false;
+
+	/** Damage related members */
 
 	UPROPERTY(EditAnywhere, Category = "Damage")
 	float BaseDamage = 20.f;

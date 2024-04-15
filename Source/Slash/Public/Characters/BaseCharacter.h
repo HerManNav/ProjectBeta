@@ -140,7 +140,7 @@ private:
 	TObjectPtr<UAnimMontage> AttackMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Montages|Attack")
-	TObjectPtr<UAnimMontage> HitMontage;
+	TObjectPtr<UAnimMontage> HitReactMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Montages|Death")
 	TObjectPtr<UAnimMontage> DeathMontage;
