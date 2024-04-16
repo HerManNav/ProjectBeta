@@ -201,7 +201,7 @@ void AEnemy::SpawnSoul()
 	if (GetWorld() && SoulClassToSpawn)
 	{
 		FVector CenterLocation = GetMesh()->GetBoneLocation(BoneToSpawnSoul);
-		FVector LocationToSpawn = FVector(CenterLocation.X, CenterLocation.Y, CenterLocation.Z + 75.f);
+		FVector LocationToSpawn = FVector(CenterLocation.X, CenterLocation.Y, CenterLocation.Z + 300.f);
 
 		ASoul* SpawnedSoul = SpawnSoulAtLocation(LocationToSpawn);
 		SetSoulsAmount(SpawnedSoul);

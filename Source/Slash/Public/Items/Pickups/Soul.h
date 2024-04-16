@@ -18,11 +18,22 @@ public:
 
 	ASoul();
 
+	virtual void BeginPlay() override;
+
 protected:
 
 	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 
+	void Destroy();
+
 	int32 SoulAmount;
+
+	/** Duration */
+
+	FTimerHandle LifespanTimer;
+
+	UPROPERTY(EditDefaultsOnly, Category = Duration)
+	float Lifespan = 30.f;
 
 public:
 
