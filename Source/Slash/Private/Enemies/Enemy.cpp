@@ -124,7 +124,7 @@ void AEnemy::GetHit_Implementation(const FVector& HitPoint)
 * Die
 */
 
-void AEnemy::Die()
+void AEnemy::Die_Implementation()
 {
 	if (IsTerminal())		// Terminal state is needed to allow multiple hits after death
 	{

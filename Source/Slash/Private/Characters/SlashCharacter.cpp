@@ -278,7 +278,7 @@ void ASlashCharacter::ActuallyReceiveDamage(float DamageAmount)
 	Super::ActuallyReceiveDamage(DamageAmount);
 }
 
-void ASlashCharacter::Die()
+void ASlashCharacter::Die_Implementation()
 {
 	ActionState = EActionState::EAS_Dead;
 

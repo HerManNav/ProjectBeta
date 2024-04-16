@@ -64,11 +64,13 @@ protected:
 	virtual void UpdateHealthBar() {};
 
 	/** Death */
-	virtual void Die() {}
 	virtual void DisableCollisionsToDie();
 	virtual void DisableAttributesRegen();
 
 	/** Exposed */
+
+	UFUNCTION(BlueprintNativeEvent)
+	void Die();
 
 	UFUNCTION(BlueprintCallable)
 	virtual void AttackEnd() {}

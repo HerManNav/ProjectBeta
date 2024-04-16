@@ -42,7 +42,7 @@ protected:
 	virtual void Attack() override;
 	virtual void AttackEnd() override;
 	virtual void HitReactEnd() override;
-	virtual void Die() override;
+	virtual void Die_Implementation() override;
 	virtual int16 PlayDeathMontage() override;
 	virtual bool CanTakeDamage() override;
 	virtual void ActuallyReceiveDamage(float DamageAmount) override;

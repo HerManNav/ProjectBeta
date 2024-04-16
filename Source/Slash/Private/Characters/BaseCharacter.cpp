@@ -68,6 +68,10 @@ bool ABaseCharacter::HasSomeHealthRemaining()
 	return Attributes? Attributes->IsAlive() : false;
 }
 
+void ABaseCharacter::Die_Implementation()
+{
+}
+
 float ABaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	if (!CanTakeDamage()) return -1.f;
