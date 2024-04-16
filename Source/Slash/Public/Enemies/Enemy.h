@@ -125,6 +125,8 @@ private:
 	void ActivateDeathPetalsAnim();
 	void SetSpawnSoulTimer();
 	void SpawnSoul();
+	ASoul* SpawnSoulAtLocation(FVector Location);
+	void SetSoulsAmount(ASoul* Soul);
 
 	/** Exposed */
 
@@ -215,9 +217,16 @@ private:
 
 	FTimerHandle SpawnSoulTimer;
 
-	UPROPERTY(EditAnywhere, Category = "Souls")
+	UPROPERTY(EditAnywhere, Category = Souls)
 	TSubclassOf<ASoul> SoulClassToSpawn;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Souls")
+	UPROPERTY(EditAnywhere, Category = Souls)
+	int32 MinSouls = 5;
+
+	UPROPERTY(EditAnywhere, Category = Souls)
+	int32 MaxSouls = 10;
+
+	UPROPERTY(EditDefaultsOnly, Category = Souls)
 	FName BoneToSpawnSoul = "pelvis";
+
 };

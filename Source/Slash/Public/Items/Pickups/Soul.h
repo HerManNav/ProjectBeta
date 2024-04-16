@@ -18,21 +18,18 @@ public:
 
 	ASoul();
 
-	virtual void BeginPlay() override;
-
 protected:
 
 	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 
 	int32 SoulAmount;
 
-	UPROPERTY(EditAnywhere)
-	int32 MinSouls = 5;
-
-	UPROPERTY(EditAnywhere)
-	int32 MaxSouls = 10;
-
 public:
 
+	/** Getters & Setters */
+
 	FORCEINLINE int32 GetSoulAmount() { return SoulAmount; }
+
+	FORCEINLINE void SetSoulsAmount(const int32 InSoulAmount) { SoulAmount = InSoulAmount; }
+
 };

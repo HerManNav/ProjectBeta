@@ -203,13 +203,29 @@ void AEnemy::SpawnSoul()
 		FVector CenterLocation = GetMesh()->GetBoneLocation(BoneToSpawnSoul);
 		FVector LocationToSpawn = FVector(CenterLocation.X, CenterLocation.Y, CenterLocation.Z + 75.f);
 
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		ASoul* SpawnedSoul = GetWorld()->SpawnActor<ASoul>(SoulClassToSpawn,
-														   LocationToSpawn,
-														   FRotator::ZeroRotator,
-														   SpawnParams);
+		ASoul* SpawnedSoul = SpawnSoulAtLocation(LocationToSpawn);
+		SetSoulsAmount(SpawnedSoul);
 	}
+}
+
+ASoul* AEnemy::SpawnSoulAtLocation(FVector Location)
+{
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	ASoul* SpawnedSoul = GetWorld()->SpawnActor<ASoul>(
+		SoulClassToSpawn,
+		Location,
+		FRotator::ZeroRotator,
+		SpawnParams);
+
+	return SpawnedSoul;
+}
+
+void AEnemy::SetSoulsAmount(ASoul* Soul)
+{
+	int32 SoulsAmount = FMath::RandRange(MinSouls, MaxSouls);
+	Soul->SetSoulsAmount(SoulsAmount);
 }
 
 /*
