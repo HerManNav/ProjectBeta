@@ -19,20 +19,25 @@ public:
 	ASoul();
 
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 
 	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 
-	void Destroy();
+	float GetTargetZ();
 
 	int32 SoulAmount;
 
-	/** Duration */
+	float TargetZ;
 
-	FTimerHandle LifespanTimer;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Soul properties|Drift")
+	float DesiredTargetAltitude = 75.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = Duration)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Soul properties|Drift")
+	float DriftingSpeed = 30.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Soul properties")
 	float Lifespan = 30.f;
 
 public:

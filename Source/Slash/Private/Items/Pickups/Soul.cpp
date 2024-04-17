@@ -4,21 +4,41 @@
 #include "Items/Pickups/Soul.h"
 #include "Interfaces/PickupInterface.h"
 
+#include "Kismet/KismetSystemLibrary.h"
+
 ASoul::ASoul()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void ASoul::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetWorldTimerManager().SetTimer(LifespanTimer, this, &ASoul::Destroy, Lifespan);
+	TargetZ = GetTargetZ();
+	SetLifeSpan(Lifespan);
 }
 
-void ASoul::Destroy()
+float ASoul::GetTargetZ()
 {
-	Super::Destroy();
+	FVector TracingStart = GetActorLocation();
+	FVector TracingEnd = FVector(TracingStart.X, TracingStart.Y, TracingStart.Z - 1000);
+	FHitResult HitResult;
+
+	TArray<AActor*> ActorsToIgnore;
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
+
+	UKismetSystemLibrary::LineTraceSingleForObjects(
+		this,
+		TracingStart, TracingEnd,
+		ObjectTypes	, false, ActorsToIgnore,
+		EDrawDebugTrace::ForDuration,
+		HitResult,
+		true);
+
+	FVector HitLocation = HitResult.Location;
+	return HitLocation.Z + DesiredTargetAltitude;
 }
 
 void ASoul::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -33,5 +53,17 @@ void ASoul::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 		PlayPickupSound();
 		PlayPickupParticles();
 		Destroy();
+	}
+}
+
+void ASoul::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	float DeltaZ = DriftingSpeed * DeltaTime;
+	if (GetActorLocation().Z > TargetZ)
+	{
+		FVector Offset(0.f, 0.f, -DeltaZ);
+		AddActorWorldOffset(Offset);
 	}
 }
