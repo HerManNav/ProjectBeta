@@ -26,10 +26,15 @@ So far, this full set of features has been implemented in C++:
 
 - Death:
   - Main character and Enemies random animation deaths
-  - Dithering & particles before destroying enemy instances
- 
+  - Dithering & particles before destroying Enemy instances (dithering only for Paladin)
+
+Different types of Enemies have been implemented:
+- Paladin (Terrestrial, Weaponized)
+- Dinosaur (Terrestrial, Bite)
+- Mosquito (Aerial, Bite)
+
 Besides, animations, SFx, and particles have been included for:
-  - Hits, steps, armor, and exertions for main character and NPC
+  - Hits, movements (steps, armor, dodge), Items collection, and exertions for main character and NPCs
   - Items: Treasures (for Gold), Souls (for XP)
 
 Some destructibles / Geometry Collections have been also added to the repo.
