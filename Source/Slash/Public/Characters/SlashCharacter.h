@@ -90,6 +90,8 @@ protected:
 	bool CanDodge();
 	bool HasEnoughStaminaToDodge();
 	void ConsumeStamina();
+	void DisableCollisionsForDodge();
+	void EnableBackCollisionsAfterDodge();
 	void RecoverStamina(float RecoverAmount);
 
 	/** Exposed */

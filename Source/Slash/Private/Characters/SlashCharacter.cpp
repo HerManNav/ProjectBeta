@@ -213,6 +213,7 @@ void ASlashCharacter::DodgeForward()
 		ActionState = EActionState::EAS_Dodging;
 
 		ConsumeStamina();
+		DisableCollisionsForDodge();
 		PlayMontage(DodgeForwardMontage, DodgeForwardMontage->GetSectionName(0));
 	}
 }
@@ -238,9 +239,21 @@ void ASlashCharacter::ConsumeStamina()
 	}
 }
 
+void ASlashCharacter::DisableCollisionsForDodge()
+{
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Ignore);
+}
+
 void ASlashCharacter::DodgeEnd()
 {
 	ActionState = EActionState::EAS_Unoccupied;
+
+	EnableBackCollisionsAfterDodge();
+}
+
+void ASlashCharacter::EnableBackCollisionsAfterDodge()
+{
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Block);
 }
 
 /*
