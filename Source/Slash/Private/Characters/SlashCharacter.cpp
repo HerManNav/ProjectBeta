@@ -186,6 +186,17 @@ void ASlashCharacter::ToggleWalk()
 	UpdateMaxGroundSpeed();
 }
 
+void ASlashCharacter::Jump()
+{
+	if (CanJump())
+		Super::Jump();
+}
+
+bool ASlashCharacter::CanJump()
+{
+	return IsUnoccupied();
+}
+
 void ASlashCharacter::UpdateMaxGroundSpeed()
 {
 	if (!Attributes) return;
@@ -220,8 +231,8 @@ void ASlashCharacter::DodgeForward()
 
 bool ASlashCharacter::CanDodge()
 {
-	return DodgeForwardMontage && 
-		!IsDodging() && 
+	return DodgeForwardMontage &&
+		!IsDodging() &&
 		HasEnoughStaminaToDodge();
 }
 
@@ -328,7 +339,7 @@ int16 ASlashCharacter::PlayDeathMontage()
 
 bool ASlashCharacter::CanAttack()
 {
-	return	IsEquipped() && IsUnoccupied();
+	return IsEquipped() && IsUnoccupied();
 }
 
 void ASlashCharacter::Attack()

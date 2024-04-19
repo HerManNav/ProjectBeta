@@ -70,8 +70,9 @@ protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void Equip();
-	void ToggleWalk();
 	void DodgeForward();
+	void ToggleWalk();
+	virtual void Jump() override;
 
 	/** State */
 
@@ -93,6 +94,8 @@ protected:
 	void DisableCollisionsForDodge();
 	void EnableBackCollisionsAfterDodge();
 	void RecoverStamina(float RecoverAmount);
+
+	bool CanJump();
 
 	/** Exposed */
 
