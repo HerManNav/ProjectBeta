@@ -94,7 +94,7 @@ protected:
 
 	bool CanDodge();
 	bool HasEnoughStaminaToDodge();
-	void ConsumeStamina();
+	void ConsumeStamina(float StaminaConsumption);
 	void DisableCollisionsForDodge();
 	void EnableBackCollisionsAfterDodge();
 	void RecoverStamina(float RecoverAmount);
@@ -109,16 +109,16 @@ protected:
 	void DodgeEnd();
 	
 	UFUNCTION(BlueprintCallable)
-	void DisarmAttachToBack();
+	void Arm();
 
 	UFUNCTION(BlueprintCallable)
-	void ArmAttachToHand();
+	void Disarm();
 
 	UFUNCTION(BlueprintCallable)
-	void ArmEnd();
+	void AttachWeaponToBack();
 
 	UFUNCTION(BlueprintCallable)
-	void DisarmEnd();
+	void AttachWeaponToHand();
 
 	/*
 	* Variables

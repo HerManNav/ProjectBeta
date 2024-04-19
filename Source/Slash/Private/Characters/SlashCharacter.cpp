@@ -185,9 +185,32 @@ void ASlashCharacter::ToggleWalk()
 	UpdateMaxGroundSpeed();
 }
 
-/*
-* Arm/Disarm
-*/
+void ASlashCharacter::UpdateMaxGroundSpeed()
+{
+	if (!Attributes) return;
+
+	if (bWalking)
+	{
+		if (CanGoMaxSpeed())
+			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetWalkingSpeedUnequipped();
+		else
+			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetWalkingSpeedEquipped();
+	}
+	else
+	{
+		if (CanGoMaxSpeed())
+			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetRunningSpeedUnequipped();
+		else
+			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetRunningSpeedEquipped();
+	}
+}
+
+bool ASlashCharacter::CanGoMaxSpeed()
+{
+	return IsUnequipped() || IsDisarmed();
+}
+
+/** Arm/Disarm */
 
 void ASlashCharacter::ArmDisarm()
 {
@@ -209,29 +232,31 @@ bool ASlashCharacter::CanArmDisarm()
 		Weapon;
 }
 
-void ASlashCharacter::DisarmAttachToBack()
+void ASlashCharacter::Arm()
+{
+	EquipState = EEquipState::EES_ArmedOneHandedWeapon;
+	ActionState = EActionState::EAS_Unoccupied;
+	UpdateMaxGroundSpeed();
+}
+
+void ASlashCharacter::Disarm()
+{
+	EquipState = EEquipState::EES_Disarmed;
+	ActionState = EActionState::EAS_Unoccupied;
+	UpdateMaxGroundSpeed();
+}
+
+void ASlashCharacter::AttachWeaponToBack()
 {
 	Weapon->AttachToSocket(this->GetMesh(), FName("socket_weaponBack"));
 }
 
-void ASlashCharacter::ArmAttachToHand()
+void ASlashCharacter::AttachWeaponToHand()
 {
 	Weapon->AttachToSocket(this->GetMesh(), FName("socket_rightHand"));
 }
 
-void ASlashCharacter::DisarmEnd()
-{
-	ActionState = EActionState::EAS_Unoccupied;
-	EquipState = EEquipState::EES_Disarmed;
-	UpdateMaxGroundSpeed();
-}
-
-void ASlashCharacter::ArmEnd()
-{
-	ActionState = EActionState::EAS_Unoccupied;
-	EquipState = EEquipState::EES_ArmedOneHandedWeapon;
-	UpdateMaxGroundSpeed();
-}
+/** Jump */
 
 void ASlashCharacter::Jump()
 {
@@ -244,38 +269,7 @@ bool ASlashCharacter::CanJump()
 	return IsUnoccupied();
 }
 
-void ASlashCharacter::UpdateMaxGroundSpeed()
-{
-	if (!Attributes) return;
-
-	if (bWalking)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("inside update max ground speed: bwalking true"));
-		if (CanGoMaxSpeed())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("inside update max ground speed: bwalking true canrun!"));
-			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetWalkingSpeedUnequipped();
-		}
-		else
-			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetWalkingSpeedEquipped();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("inside update max ground speed: bwalking false"));
-		if (CanGoMaxSpeed())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("inside update max ground speed: bwalking false canrun!"));
-			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetRunningSpeedUnequipped();
-		}
-		else
-			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetRunningSpeedEquipped();
-	}
-}
-
-bool ASlashCharacter::CanGoMaxSpeed()
-{
-	return IsUnequipped() || IsDisarmed();
-}
+/** Dodge */
 
 void ASlashCharacter::DodgeForward()
 {
@@ -283,7 +277,7 @@ void ASlashCharacter::DodgeForward()
 	{
 		ActionState = EActionState::EAS_Dodging;
 
-		ConsumeStamina();
+		ConsumeStamina(DodgeStaminaConsumption);
 		DisableCollisionsForDodge();
 		PlayMontage(DodgeForwardMontage, DodgeForwardMontage->GetSectionName(0));
 	}
@@ -301,11 +295,11 @@ bool ASlashCharacter::HasEnoughStaminaToDodge()
 	return Attributes? Attributes->GetStamina() > DodgeStaminaConsumption : false;
 }
 
-void ASlashCharacter::ConsumeStamina()
+void ASlashCharacter::ConsumeStamina(float StaminaConsumption)
 {
 	if (Attributes && HUD)
 	{
-		Attributes->ConsumeStamina(DodgeStaminaConsumption);
+		Attributes->ConsumeStamina(StaminaConsumption);
 		HUD->GetSlashOverlay()->SetStaminaPercentage(Attributes->GetStaminaPercent());
 	}
 }
@@ -399,7 +393,7 @@ int16 ASlashCharacter::PlayDeathMontage()
 
 bool ASlashCharacter::CanAttack()
 {
-	return IsEquipped() && IsUnoccupied();
+	return IsArmedOneHandedWeapon() && IsUnoccupied();
 }
 
 void ASlashCharacter::Attack()
