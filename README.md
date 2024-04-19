@@ -8,6 +8,7 @@ So far, this full set of features has been implemented in C++:
     - Jump
     - Dodge
     - Equip weapons
+    - Sheathe/Unseathe weapons
     - Attack
     - Health & Death
     - Gold & Souls (HUD & inventory)
