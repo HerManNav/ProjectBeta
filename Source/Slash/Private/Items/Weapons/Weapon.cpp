@@ -47,6 +47,17 @@ void AWeapon::Equip(USceneComponent* Parent, FName SocketName, AActor* NewOwner,
 	ItemState = EItemState::EIS_Equipped;
 }
 
+void AWeapon::Arm(USceneComponent* Parent, FName SocketName)
+{
+	AttachToComponentAndSocket(Parent, SocketName);
+	PlayPickupSound();
+}
+
+void AWeapon::AttachToSocket(USceneComponent* Parent, FName SocketName)
+{
+	AttachToComponentAndSocket(Parent, SocketName);
+}
+
 void AWeapon::DeactivateNiagara()
 {
 	Niagara->Deactivate();

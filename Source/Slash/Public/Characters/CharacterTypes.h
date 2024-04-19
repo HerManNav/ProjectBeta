@@ -5,8 +5,8 @@ UENUM(BlueprintType)
 enum class EEquipState : uint8
 {
 	EES_Unequipped UMETA(DisplayName = "Unequipped"),
-	EES_EquippedOneHandedWeapon UMETA(DisplayName = "Equipped one-handed weapon"),
-	EES_EquippedTwoHandedWeapon UMETA(DisplayName = "Equipped two-handed weapon")
+	EES_Disarmed UMETA(DisplayName = "Disarmed"),
+	EES_ArmedOneHandedWeapon UMETA(DisplayName = "Armed one-handed weapon")
 };
 
 // What's the character doing (attacking, reacting to a hit)
@@ -14,6 +14,7 @@ UENUM(BlueprintType)
 enum class EActionState : uint8
 {
 	EAS_Unoccupied UMETA(DisplayName = "Unoccupied"),
+	EAS_ArmingDisarming UMETA(DisplayName = "ArmingDisarming"),
 	EAS_HitReacting UMETA(DisplayName = "HitReacting"),
 	EAS_Dodging UMETA(DisplayName = "Dodging"),
 	EAS_Attacking UMETA(DisplayName = "Attacking"),

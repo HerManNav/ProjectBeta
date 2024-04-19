@@ -72,11 +72,13 @@ protected:
 	void Equip();
 	void DodgeForward();
 	void ToggleWalk();
+	void ArmDisarm();
 	virtual void Jump() override;
 
 	/** State */
 
 	void UpdateMaxGroundSpeed();
+	bool CanGoMaxSpeed();
 	void UpdateStaminaBar();
 
 	bool IsUnoccupied();
@@ -87,6 +89,8 @@ protected:
 
 	bool IsUnequipped();
 	bool IsEquipped();
+	bool IsDisarmed();
+	bool IsArmedOneHandedWeapon();
 
 	bool CanDodge();
 	bool HasEnoughStaminaToDodge();
@@ -95,12 +99,26 @@ protected:
 	void EnableBackCollisionsAfterDodge();
 	void RecoverStamina(float RecoverAmount);
 
+	bool CanArmDisarm();
+
 	bool CanJump();
 
 	/** Exposed */
 
 	UFUNCTION(BlueprintCallable)
 	void DodgeEnd();
+	
+	UFUNCTION(BlueprintCallable)
+	void DisarmAttachToBack();
+
+	UFUNCTION(BlueprintCallable)
+	void ArmAttachToHand();
+
+	UFUNCTION(BlueprintCallable)
+	void ArmEnd();
+
+	UFUNCTION(BlueprintCallable)
+	void DisarmEnd();
 
 	/*
 	* Variables
@@ -108,7 +126,7 @@ protected:
 
 	/** State */
 
-	bool bWalking;
+	bool bWalking = false;
 
 	EEquipState EquipState = EEquipState::EES_Unequipped;
 
@@ -136,6 +154,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputAction> ToggleWalkAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<UInputAction> ArmDisarmAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputAction> EquipAction;
@@ -195,8 +216,11 @@ private:
 
 	/** Montages */
 
-	UPROPERTY(EditAnywhere, Category = "Montages|Movement")
+	UPROPERTY(EditDefaultsOnly, Category = "Montages|Movement")
 	TObjectPtr<UAnimMontage> DodgeForwardMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Montages|Equip")
+	TObjectPtr<UAnimMontage> ArmDisarmMontage;
 
 public:
 

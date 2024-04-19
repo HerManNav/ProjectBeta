@@ -25,8 +25,6 @@ ASlashCharacter::ASlashCharacter()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	bWalking = false;
-
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f);
 
@@ -120,6 +118,7 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(DodgeForwardAction, ETriggerEvent::Completed, this, &ASlashCharacter::DodgeForward);
 
 		EnhancedInputComponent->BindAction(ToggleWalkAction, ETriggerEvent::Completed, this, &ASlashCharacter::ToggleWalk);
+		EnhancedInputComponent->BindAction(ArmDisarmAction, ETriggerEvent::Completed, this, &ASlashCharacter::ArmDisarm);
 
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 	}
@@ -173,7 +172,7 @@ void ASlashCharacter::Equip()
 		 WeaponToEquip->Equip(this->GetMesh(), FName("socket_rightHand"), this, this);
 		 Weapon = WeaponToEquip;
 
-		 EquipState = EEquipState::EES_EquippedOneHandedWeapon;
+		 EquipState = EEquipState::EES_ArmedOneHandedWeapon;
 
 		 UpdateMaxGroundSpeed();
 	 }
@@ -183,6 +182,54 @@ void ASlashCharacter::ToggleWalk()
 {
 	bWalking = !bWalking;
 
+	UpdateMaxGroundSpeed();
+}
+
+/*
+* Arm/Disarm
+*/
+
+void ASlashCharacter::ArmDisarm()
+{
+	if (CanArmDisarm())
+	{
+		ActionState = EActionState::EAS_ArmingDisarming;
+
+		if (IsArmedOneHandedWeapon())
+			PlayAnimMontage(ArmDisarmMontage, 1.f, FName("Disarm"));
+		else
+			PlayAnimMontage(ArmDisarmMontage, 1.f, FName("Arm"));
+	}
+}
+
+bool ASlashCharacter::CanArmDisarm()
+{
+	return ArmDisarmMontage &&
+		IsUnoccupied() &&
+		Weapon;
+}
+
+void ASlashCharacter::DisarmAttachToBack()
+{
+	Weapon->AttachToSocket(this->GetMesh(), FName("socket_weaponBack"));
+}
+
+void ASlashCharacter::ArmAttachToHand()
+{
+	Weapon->AttachToSocket(this->GetMesh(), FName("socket_rightHand"));
+}
+
+void ASlashCharacter::DisarmEnd()
+{
+	ActionState = EActionState::EAS_Unoccupied;
+	EquipState = EEquipState::EES_Disarmed;
+	UpdateMaxGroundSpeed();
+}
+
+void ASlashCharacter::ArmEnd()
+{
+	ActionState = EActionState::EAS_Unoccupied;
+	EquipState = EEquipState::EES_ArmedOneHandedWeapon;
 	UpdateMaxGroundSpeed();
 }
 
@@ -203,18 +250,31 @@ void ASlashCharacter::UpdateMaxGroundSpeed()
 
 	if (bWalking)
 	{
-		if (EquipState == EEquipState::EES_Unequipped)
+		UE_LOG(LogTemp, Warning, TEXT("inside update max ground speed: bwalking true"));
+		if (CanGoMaxSpeed())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("inside update max ground speed: bwalking true canrun!"));
 			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetWalkingSpeedUnequipped();
+		}
 		else
 			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetWalkingSpeedEquipped();
 	}
 	else
 	{
-		if (EquipState == EEquipState::EES_Unequipped)
+		UE_LOG(LogTemp, Warning, TEXT("inside update max ground speed: bwalking false"));
+		if (CanGoMaxSpeed())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("inside update max ground speed: bwalking false canrun!"));
 			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetRunningSpeedUnequipped();
+		}
 		else
 			GetCharacterMovement()->MaxWalkSpeed = Attributes->GetRunningSpeedEquipped();
 	}
+}
+
+bool ASlashCharacter::CanGoMaxSpeed()
+{
+	return IsUnequipped() || IsDisarmed();
 }
 
 void ASlashCharacter::DodgeForward()
@@ -424,6 +484,16 @@ bool ASlashCharacter::IsUnequipped()
 bool ASlashCharacter::IsEquipped()
 {
 	return !IsUnequipped();
+}
+
+bool ASlashCharacter::IsDisarmed()
+{
+	return EquipState == EEquipState::EES_Disarmed;
+}
+
+bool ASlashCharacter::IsArmedOneHandedWeapon()
+{
+	return EquipState == EEquipState::EES_ArmedOneHandedWeapon;
 }
 
 void ASlashCharacter::Tick(float DeltaTime)

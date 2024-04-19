@@ -22,7 +22,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void Equip(USceneComponent* Parent, FName SocketName, AActor* NewOwner, APawn* NewInstigator);
-	
+
+	void Arm(USceneComponent* Parent, FName SocketName);
+	void AttachToSocket(USceneComponent* Parent, FName SocketName);
+
 protected:
 
 	virtual void BeginPlay() override;
