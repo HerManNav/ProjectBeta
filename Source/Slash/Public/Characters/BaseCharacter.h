@@ -104,7 +104,7 @@ protected:
 
 	/** Combat */
 
-	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	TObjectPtr<AActor> CombatTarget;
 
 	UPROPERTY(EditAnywhere, Category = "Combat|Motion Warping")
