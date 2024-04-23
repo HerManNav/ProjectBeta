@@ -8,6 +8,7 @@
 #include "Components/AttributesComponent.h"
 #include "HUD/SlashHUD.h"
 #include "HUD/SlashOverlay.h"
+#include "Components/LockOnComponent.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -49,6 +50,9 @@ ASlashCharacter::ASlashCharacter()
 	GetMesh()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+
+	LockOnSystem = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
+	LockOnSystem->Init(ViewCamera);
 }
 
 void ASlashCharacter::BeginPlay()
@@ -121,6 +125,9 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(ArmDisarmAction, ETriggerEvent::Completed, this, &ASlashCharacter::ArmDisarm);
 
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+
+		EnhancedInputComponent->BindAction(LockOnEnableDisableAction, ETriggerEvent::Triggered, this, &ASlashCharacter::LockOnEnableDisable);
+		EnhancedInputComponent->BindAction(LockOnSwapTargetAction, ETriggerEvent::Triggered, this, &ASlashCharacter::LockOnSwapTarget);
 	}
 }
 
@@ -267,6 +274,31 @@ void ASlashCharacter::Jump()
 bool ASlashCharacter::CanJump()
 {
 	return IsUnoccupied();
+}
+
+/** LockOn */
+
+void ASlashCharacter::LockOnEnableDisable()
+{
+	if (LockOnSystem)
+	{
+		if (!bIsLockOnActive)
+		{
+			if (LockOnSystem->Enable())
+				bIsLockOnActive = true;
+		}
+		else
+		{
+			bIsLockOnActive = false;
+			LockOnSystem->Disable();
+		}
+	}
+}
+
+void ASlashCharacter::LockOnSwapTarget()
+{
+	if (LockOnSystem)
+		LockOnSystem->SwapTarget();
 }
 
 /** Dodge */

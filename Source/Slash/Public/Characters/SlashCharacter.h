@@ -21,6 +21,8 @@ class UGroomComponent;
 class AItem;
 class ASlashHUD;
 
+class ULockOnComponent;
+
 UCLASS()
 class SLASH_API ASlashCharacter : public ABaseCharacter, public IPickupInterface
 {
@@ -74,6 +76,8 @@ protected:
 	void ToggleWalk();
 	void ArmDisarm();
 	virtual void Jump() override;
+	void LockOnEnableDisable();
+	void LockOnSwapTarget();
 
 	/** State */
 
@@ -133,6 +137,20 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	EActionState ActionState = EActionState::EAS_Unoccupied;
 
+	/** Components */
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+	TObjectPtr<USpringArmComponent> SpringArm;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	TObjectPtr<UCameraComponent> ViewCamera;
+
+	UPROPERTY(VisibleAnywhere, Category = Hair)
+	TObjectPtr<UGroomComponent> Hair;
+
+	UPROPERTY(VisibleAnywhere, Category = Hair)
+	TObjectPtr<UGroomComponent> Eyebrows;
+
 	/** Input */
 
 	TObjectPtr<UEnhancedInputLocalPlayerSubsystem> EnhancedInputSubsystem;
@@ -167,12 +185,25 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputAction> DodgeForwardAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<UInputAction> LockOnEnableDisableAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<UInputAction> LockOnSwapTargetAction;
+
 	/** Dodge */
 
 	UPROPERTY(EditAnywhere, Category = "Dodge|Stamina")
 	float DodgeStaminaConsumption = 20.f;
 
+	/** LockOn */
 
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<ULockOnComponent> LockOnSystem;
+
+	UPROPERTY(VisibleAnywhere, Category = "LockOn")
+	bool bIsLockOnActive = false;
+	
 private:
 
 	/**
@@ -199,20 +230,6 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	TObjectPtr<ASlashHUD> HUD;
-
-	/** Components */
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
-	TObjectPtr<USpringArmComponent> SpringArm;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
-	TObjectPtr<UCameraComponent> ViewCamera;
-
-	UPROPERTY(VisibleAnywhere, Category = Hair)
-	TObjectPtr<UGroomComponent> Hair;
-
-	UPROPERTY(VisibleAnywhere, Category = Hair)
-	TObjectPtr<UGroomComponent> Eyebrows;
 
 	/** Montages */
 
