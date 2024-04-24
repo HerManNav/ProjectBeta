@@ -20,7 +20,7 @@ public:
 
 	void Init(UCameraComponent* Camera);
 
-	int16 Enable();
+	int16 Enable();		// Returns the number of found targets
 	void Disable();
 	void SwapTarget();
 
@@ -33,11 +33,15 @@ protected:
 	*/
 
 	void GetLockOnTargets(TArray<AActor*>& InTargets);
-	float GetDistanceToEnemyAtIndex(const TArray<AActor*>& Enemies, int16 Index);
+	void GetHitsToPawnsInFront(TArray<FHitResult>& OutPawnHits);
+	void GetVisibleImpactedActors(TArray<AActor*>& OutVisiblePawns, const TArray<FHitResult>& PawnHits);
+	void DoLineTraceAgainstWorldStatic(FHitResult& OutHitResult, const FVector& TraceStart, const FVector& TraceEnd);
 
-	void GetHitsToPawnsInFront(TArray<FHitResult> PawnHits);
-	TArray<AActor*> GetVisibleImpactedActors(TArray<FHitResult> PawnHits);
-	void DoSphereTrace(const FVector& PawnHitLocation, FHitResult& HitResult);
+	float GetDistanceToTarget(const AActor* Target);
+
+	void ShowLockOnWidgetOnActor(AActor* Actor);
+	void HideLockOnWidgetOnActor(AActor* Actor);
+	void StopRotationTimeline();
 
 	/*
 	* Variables
@@ -52,19 +56,26 @@ protected:
 
 	/** LockOn variables */
 
-	UPROPERTY(EditDefaultsOnly, Category = "LockOn")
-	float TraceLength = 1000.f;
+	/** If bActivate = false, the whole LockOn system will be disabled */
+	UPROPERTY(EditDefaultsOnly, Category = "LockOn Properties")
+	bool bActivate = true;
 
-	UPROPERTY(EditDefaultsOnly, Category = "LockOn")
+	UPROPERTY(EditDefaultsOnly, Category = "LockOn Properties")
 	bool bDrawDebug = true;
 
-	UPROPERTY(VisibleAnywhere, Category = "LockOn")
+	UPROPERTY(EditDefaultsOnly, Category = "LockOn Properties")
+	float TraceLength = 1000.f;
+
+	UPROPERTY(VisibleAnywhere, Category = "LockOn Properties")
 	int16 CurrentTargetIndex = -1;
 
-	UPROPERTY(VisibleAnywhere, Category = "LockOn")
+	UPROPERTY(VisibleAnywhere, Category = "LockOn Properties")
 	TArray<TObjectPtr<AActor>> Targets;
 
-	UPROPERTY(VisibleAnywhere, Category = "LockOn")
+	UPROPERTY(VisibleAnywhere, Category = "LockOn Properties")
+	TObjectPtr<AActor> CurrentTarget;
+
+	UPROPERTY(VisibleAnywhere, Category = "LockOn Properties")
 	float DistanceToCurrentEnemy;
 
 };

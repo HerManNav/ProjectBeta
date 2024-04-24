@@ -126,8 +126,8 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 
-		EnhancedInputComponent->BindAction(LockOnEnableDisableAction, ETriggerEvent::Triggered, this, &ASlashCharacter::LockOnEnableDisable);
-		EnhancedInputComponent->BindAction(LockOnSwapTargetAction, ETriggerEvent::Triggered, this, &ASlashCharacter::LockOnSwapTarget);
+		EnhancedInputComponent->BindAction(LockOnEnableDisableAction, ETriggerEvent::Completed, this, &ASlashCharacter::LockOnEnableDisable);
+		EnhancedInputComponent->BindAction(LockOnSwapTargetAction, ETriggerEvent::Completed, this, &ASlashCharacter::LockOnSwapTarget);
 	}
 }
 
@@ -282,15 +282,15 @@ void ASlashCharacter::LockOnEnableDisable()
 {
 	if (LockOnSystem)
 	{
-		if (!bIsLockOnActive)
+		if (!bIsLockOnEnabled)
 		{
-			if (LockOnSystem->Enable())
-				bIsLockOnActive = true;
+			if (LockOnSystem->Enable() > 0)
+				bIsLockOnEnabled = true;
 		}
 		else
 		{
-			bIsLockOnActive = false;
 			LockOnSystem->Disable();
+			bIsLockOnEnabled = false;
 		}
 	}
 }

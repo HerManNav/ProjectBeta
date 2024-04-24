@@ -5,19 +5,21 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Characters/BaseCharacter.h"
+#include "Interfaces/LockOnInterface.h"
 
 #include "Enemy.generated.h"
 
 class ASoul;
 
 class UHealthBarComponent;
+class UWidgetComponent;
 class UNiagaraComponent;
 
 class AAIController;
 class UPawnSensingComponent;
 
 UCLASS()
-class SLASH_API AEnemy : public ABaseCharacter
+class SLASH_API AEnemy : public ABaseCharacter, public ILockOnInterface
 {
 	GENERATED_BODY()
 
@@ -32,6 +34,10 @@ public:
 	/** <IHitInterface> */
 	virtual void GetHit_Implementation(const FVector& HitPoint) override;
 	/** </IHitInterface> */
+
+	/** <ILockOnInterface> */
+	virtual void SetLockOnWidgetVisibility(bool bVisibility) override;
+	/** </ILockOnInterface> */
 
 protected:
 
@@ -85,6 +91,9 @@ private:
 
 	float GetPatrollingSpeed();
 	float GetChasingSpeed();
+
+	/** LockOn */
+	void UpdateLockOnWidget();
 
 	/** Combat */
 	void CheckCombat();
@@ -140,17 +149,22 @@ private:
 	* Variables
 	*/
 
+	UPROPERTY(EditDefaultsOnly, Category = Combat)
+	TSubclassOf<AWeapon> WeaponClass;
+
+	/** Components */
+
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UHealthBarComponent> HealthBar;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+	TObjectPtr<UWidgetComponent> LockOnWidget;
 
 	UPROPERTY(VisibleDefaultsOnly)
 	TObjectPtr<UNiagaraComponent> DeathPetals;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	TObjectPtr<UPawnSensingComponent> SensingComponent;
-
-	UPROPERTY(EditDefaultsOnly, Category = Combat)
-	TSubclassOf<AWeapon> WeaponClass;
 
 	/** AI: Combat */
 

@@ -4,12 +4,15 @@
 #include "Enemies/Enemy.h"
 #include "Items/Weapons/Weapon.h"
 #include "Items/Pickups/Soul.h"
+#include "HUD/HealthBarComponent.h"
+#include "Components/AttributesComponent.h"
 
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Components/AttributesComponent.h"
-#include "HUD/HealthBarComponent.h"
+#include "Components/WidgetComponent.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
@@ -23,6 +26,9 @@ AEnemy::AEnemy()
 
 	HealthBar = CreateDefaultSubobject<UHealthBarComponent>(TEXT("HealthBar"));
 	HealthBar->SetupAttachment(RootComponent);
+
+	LockOnWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("LockOnWidget"));
+	LockOnWidget->SetupAttachment(RootComponent);
 
 	DeathPetals = CreateDefaultSubobject<UNiagaraComponent>(TEXT("niagara_deathPetals"));
 	DeathPetals->SetupAttachment(GetMesh(), TEXT("Hips"));
@@ -274,10 +280,35 @@ void AEnemy::Tick(float DeltaTime)
 
 	if (IsTerminal() || IsDead()) return;
 
+	UpdateLockOnWidget();
+
 	if (IsPatrolling())
 		CheckPatrol();
 	else
-		CheckCombat();
+		CheckCombat();	
+}
+
+/*
+* LockOn
+*/
+
+void AEnemy::SetLockOnWidgetVisibility(bool bVisibility)
+{
+	UE_LOG(LogTemp, Warning, TEXT("show/hide lock on widget interface enemy! %d"), bVisibility)
+	if (LockOnWidget)
+		LockOnWidget->SetVisibility(bVisibility);
+}
+
+void AEnemy::UpdateLockOnWidget()
+{
+	if (LockOnWidget && LockOnWidget->IsVisible())
+	{
+		FVector StartPoint = LockOnWidget->GetComponentLocation();
+		FVector TargetPoint = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->GetCameraLocation();
+
+		FRotator RotationToFaceCamera = UKismetMathLibrary::FindLookAtRotation(StartPoint, TargetPoint);
+		LockOnWidget->SetWorldRotation(RotationToFaceCamera);
+	}
 }
 
 /*

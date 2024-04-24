@@ -201,8 +201,8 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<ULockOnComponent> LockOnSystem;
 
-	UPROPERTY(VisibleAnywhere, Category = "LockOn")
-	bool bIsLockOnActive = false;
+	UPROPERTY(VisibleAnywhere)
+	bool bIsLockOnEnabled = false;
 	
 private:
 

@@ -2,6 +2,7 @@
 
 
 #include "Components/LockOnComponent.h"
+#include "Interfaces/LockOnInterface.h"
 
 #include "Camera/CameraComponent.h"
 
@@ -16,8 +17,6 @@ ULockOnComponent::ULockOnComponent()
 void ULockOnComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	OwnerLocation = GetOwner()->GetActorLocation();
 }
 
 void ULockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -33,12 +32,21 @@ void ULockOnComponent::Init(UCameraComponent* Camera)
 
 int16 ULockOnComponent::Enable()
 {
+	if (!bActivate) return 0;
+
+	OwnerLocation = GetOwner()->GetActorLocation();
+
 	GetLockOnTargets(Targets);
 	if (Targets.Num() > 0)
 	{
 		CurrentTargetIndex = 0;
-		DistanceToCurrentEnemy = GetDistanceToEnemyAtIndex(Targets, CurrentTargetIndex);
+		CurrentTarget = Targets[CurrentTargetIndex];
+		ShowLockOnWidgetOnActor(CurrentTarget);
+
+		DistanceToCurrentEnemy = GetDistanceToTarget(CurrentTarget);
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("num of targets %d"), Targets.Num())
 
 	return Targets.Num();
 }
@@ -46,12 +54,12 @@ int16 ULockOnComponent::Enable()
 void ULockOnComponent::GetLockOnTargets(TArray<AActor*>& InTargets)
 {
 	TArray<FHitResult> PawnHits;
-	GetHitsToPawnsInFront(PawnHits);
 
-	InTargets = GetVisibleImpactedActors(PawnHits);
+	GetHitsToPawnsInFront(PawnHits);
+	GetVisibleImpactedActors(InTargets, PawnHits);
 }
 
-void ULockOnComponent::GetHitsToPawnsInFront(TArray<FHitResult> PawnHits)
+void ULockOnComponent::GetHitsToPawnsInFront(TArray<FHitResult>& OutPawnHits)
 {
 	FVector TraceStart = OwnerLocation;
 	FVector TraceEnd = OwnerLocation + TraceLength * ViewCamera->GetForwardVector().GetSafeNormal2D();
@@ -70,60 +78,84 @@ void ULockOnComponent::GetHitsToPawnsInFront(TArray<FHitResult> PawnHits)
 		ObjectTypes, false,
 		ActorsToIgnore,
 		bDrawDebug ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
-		PawnHits,
+		OutPawnHits,
 		true
 	);
 }
 
-TArray<AActor*> ULockOnComponent::GetVisibleImpactedActors(TArray<FHitResult> PawnHits)
+void ULockOnComponent::GetVisibleImpactedActors(TArray<AActor*>& OutVisiblePawns, const TArray<FHitResult>& PawnHits)
 {
-	TArray<AActor*> VisiblePawns;
-
 	for (FHitResult PawnHit : PawnHits)
 	{	
 		FHitResult HitResult;
-		DoSphereTrace(PawnHit.ImpactPoint, HitResult);
+		DoLineTraceAgainstWorldStatic(
+			HitResult, 
+			ViewCamera->GetComponentLocation(), PawnHit.ImpactPoint);
 
 		if (!HitResult.bBlockingHit)
-			VisiblePawns.Add(PawnHit.GetActor());
+			OutVisiblePawns.Add(PawnHit.GetActor());
 	}
-
-	return VisiblePawns;
 }
 
-void ULockOnComponent::DoSphereTrace(const FVector& PawnHitLocation, FHitResult& HitResult)
+void ULockOnComponent::DoLineTraceAgainstWorldStatic(FHitResult& OutHitResult, const FVector& TraceStart, const FVector& TraceEnd)
 {
-	FVector TraceStart = ViewCamera->GetComponentLocation();
-	FVector TraceEnd = PawnHitLocation;
-	float Radius = 1.f;
-
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
 
 	TArray<AActor*> ActorsToIgnore;
 
-	UKismetSystemLibrary::SphereTraceSingleForObjects(
+	UKismetSystemLibrary::LineTraceSingleForObjects(
 		this,
 		TraceStart, TraceEnd,
-		Radius,
 		ObjectTypes, false,
 		ActorsToIgnore,
 		bDrawDebug ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
-		HitResult,
+		OutHitResult,
 		true
 	);
 }
 
-float ULockOnComponent::GetDistanceToEnemyAtIndex(const TArray<AActor*>& Enemies, int16 Index)
+float ULockOnComponent::GetDistanceToTarget(const AActor* Target)
 {
-	return 0.0f;
+	return (Target->GetActorLocation() - OwnerLocation).Size();
 }
+
+/** Disable */
 
 void ULockOnComponent::Disable()
 {
+	if (!bActivate) return;
+
+	Targets.Empty();
+	CurrentTargetIndex = 0;
+
+	HideLockOnWidgetOnActor(CurrentTarget);
+	StopRotationTimeline();
 }
+
+void ULockOnComponent::ShowLockOnWidgetOnActor(AActor* Actor)
+{
+	ILockOnInterface* LockOnInterface = Cast<ILockOnInterface>(Actor);
+	if (LockOnInterface)
+		LockOnInterface->SetLockOnWidgetVisibility(true);
+}
+
+void ULockOnComponent::HideLockOnWidgetOnActor(AActor* Actor)
+{
+	ILockOnInterface* LockOnInterface = Cast<ILockOnInterface>(Actor);
+	if (LockOnInterface)
+		LockOnInterface->SetLockOnWidgetVisibility(false);
+}
+
+void ULockOnComponent::StopRotationTimeline()
+{
+}
+
+/** Swap target */
 
 void ULockOnComponent::SwapTarget()
 {
+	if (!bActivate) return;
+
 }
 
