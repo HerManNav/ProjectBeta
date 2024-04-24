@@ -215,6 +215,7 @@ private:
 	void InitCameraController();
 	void InitMappingContext();
 	void InitHUD();
+	void InitLockOnComponent();
 
 	/* General common methods*/
 	void DisableAllInput();

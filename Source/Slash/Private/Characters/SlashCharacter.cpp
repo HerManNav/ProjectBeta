@@ -52,7 +52,6 @@ ASlashCharacter::ASlashCharacter()
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
 
 	LockOnSystem = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
-	LockOnSystem->Init(ViewCamera);
 }
 
 void ASlashCharacter::BeginPlay()
@@ -65,6 +64,7 @@ void ASlashCharacter::BeginPlay()
 	InitCameraController();
 	InitMappingContext();
 	InitHUD();
+	InitLockOnComponent();
 }
 
 /*
@@ -103,6 +103,11 @@ void ASlashCharacter::InitHUD()
 		HUD->GetSlashOverlay()->SetCoinsAmount(0);
 		HUD->GetSlashOverlay()->SetSoulsAmount(0);
 	}
+}
+
+void ASlashCharacter::InitLockOnComponent()
+{
+	LockOnSystem->Init(this, ViewCamera);
 }
 
 /*
