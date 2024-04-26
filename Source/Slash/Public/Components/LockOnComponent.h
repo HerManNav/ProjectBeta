@@ -23,7 +23,8 @@ public:
 
 	void Init(ACharacter* InOwner, UCameraComponent* Camera);
 
-	int16 Enable();		// Returns the number of found targets
+	/** Returns the number of found targets */
+	int16 Enable();
 	void Disable();
 	void SwapTarget();
 
@@ -44,9 +45,12 @@ protected:
 
 	void ShowLockOnWidgetOnActor(AActor* Actor);
 	void HideLockOnWidgetOnActor(AActor* Actor);
-	void StopRotationTimeline();
+
+	int16 SelectNextIndex();
 
 	FRotator GetFocusToTargetRotation();
+
+	bool IsLockOnActive();
 
 	UFUNCTION()
 	void LerpControllerRotation(float Alpha);
@@ -62,6 +66,9 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<ACharacter> Owner;
+
+	UPROPERTY()
+	TObjectPtr<AActor> ControlledActor;
 
 	/** LockOn variables */
 

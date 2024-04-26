@@ -14,9 +14,6 @@
 ULockOnComponent::ULockOnComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-
-	//RotationTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("RotationTimeline"));
-	//InterpFunction->BindDynamic(this, &ULockOnComponent::LerpControllerRotation);
 }
 
 void ULockOnComponent::BeginPlay()
@@ -33,6 +30,8 @@ void ULockOnComponent::Init(ACharacter* InOwner, UCameraComponent* Camera)
 {
 	Owner = InOwner;
 	ViewCamera = Camera;
+
+	ControlledActor = Cast<AActor>(Owner->GetController());
 }
 
 /** Enable */
@@ -47,8 +46,6 @@ int16 ULockOnComponent::Enable()
 		CurrentTargetIndex = 0;
 		CurrentTarget = Targets[CurrentTargetIndex];
 		ShowLockOnWidgetOnActor(CurrentTarget);
-
-		RotationTimeline.PlayFromStart();
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("num of targets %d"), Targets.Num())
@@ -122,11 +119,6 @@ void ULockOnComponent::DoLineTraceAgainstWorldStatic(FHitResult& OutHitResult, c
 	);
 }
 
-float ULockOnComponent::GetDistanceToTarget(const AActor* Target)
-{
-	return (Target->GetActorLocation() - Owner->GetActorLocation()).Size();
-}
-
 /** Disable */
 
 void ULockOnComponent::Disable()
@@ -137,8 +129,6 @@ void ULockOnComponent::Disable()
 	CurrentTargetIndex = 0;
 
 	HideLockOnWidgetOnActor(CurrentTarget);
-	StopRotationTimeline();
-
 	RotationTimeline.Stop();
 }
 
@@ -156,47 +146,56 @@ void ULockOnComponent::HideLockOnWidgetOnActor(AActor* Actor)
 		LockOnInterface->SetLockOnWidgetVisibility(false);
 }
 
-void ULockOnComponent::StopRotationTimeline()
-{
-}
-
 /** Swap target */
 
 void ULockOnComponent::SwapTarget()
 {
-	if (!bActivated) return;
+	if (!IsLockOnActive()) return;
+	
+	HideLockOnWidgetOnActor(CurrentTarget);
 
-	//Swap CurrentTarget
+	CurrentTargetIndex = SelectNextIndex();
+	CurrentTarget = Targets[CurrentTargetIndex];
+
+	ShowLockOnWidgetOnActor(CurrentTarget);
+}
+
+int16 ULockOnComponent::SelectNextIndex()
+{
+	return (CurrentTargetIndex + 1) % Targets.Num();
 }
 
 /** Tick */
 
 void ULockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	if (!bActivated) return;
+	if (!IsLockOnActive()) return;
 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
-	if (Targets.Num() > 0)
+	DistanceToCurrentEnemy = GetDistanceToTarget(CurrentTarget);
+	if (DistanceToCurrentEnemy > DistanceToDeactivateLockOn)
 	{
-		DistanceToCurrentEnemy = GetDistanceToTarget(CurrentTarget);
-		if (DistanceToCurrentEnemy > DistanceToDeactivateLockOn)
-		{
-			RotationTimeline.TickTimeline(DeltaTime);
-		}
+		// This logic implies that the Timeline will be only played for the first of its Alpha values (in each frame it will fire
+		// the delegate LerpControllerRotation(Alpha)) for the first Alpha > 0.f, but this is ok since in the next frame, the Lerp
+		// will consider the current controller (camera) position and move towards the Target more slowly than in the previus one,
+		// resulting in a kind of a logarithmic curve (see notes), which feels smoother and better overall.
+		RotationTimeline.PlayFromStart();
+		RotationTimeline.TickTimeline(DeltaTime);
 	}
+}
+
+float ULockOnComponent::GetDistanceToTarget(const AActor* Target)
+{
+	return (Target && Owner) ? (Target->GetActorLocation() - Owner->GetActorLocation()).Size() : -1.f;
 }
 
 /** Focus target */
 
 void ULockOnComponent::LerpControllerRotation(float Alpha)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("inside lerp, alpha %f"), Alpha);
-
-	AController* OwnerController = Owner->GetController();
-	FRotator CurrentControllerRotation = OwnerController->GetControlRotation();
+	FRotator CurrentControllerRotation = ControlledActor->GetActorRotation();
 	FRotator FocusToTargetRotation = GetFocusToTargetRotation();
-
 	FRotator LerpedRotation = UKismetMathLibrary::RLerp(CurrentControllerRotation, FocusToTargetRotation, Alpha, false);
 
 	Owner->GetController()->SetControlRotation(LerpedRotation);
@@ -208,9 +207,16 @@ FRotator ULockOnComponent::GetFocusToTargetRotation()
 
 	FVector CameraTilt = FVector(OwnerLocation.X, OwnerLocation.Y, OwnerLocation.Z + CameraTiltCurve->GetFloatValue(DistanceToCurrentEnemy));
 	FVector CameraRightDisplacement = FVector(ViewCamera->GetRightVector() * CameraRightDisplacementCurve->GetFloatValue(DistanceToCurrentEnemy));
-
 	FVector CameraLocation = CameraTilt + CameraRightDisplacement;
+
 	FVector CurrentTargetLocation = CurrentTarget->GetActorLocation();
 
 	return UKismetMathLibrary::FindLookAtRotation(CameraLocation, CurrentTargetLocation);
+}
+
+/** General methods */
+
+bool ULockOnComponent::IsLockOnActive()
+{
+	return bActivated && Targets.Num() > 0;
 }

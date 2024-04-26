@@ -29,6 +29,7 @@ AEnemy::AEnemy()
 
 	LockOnWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("LockOnWidget"));
 	LockOnWidget->SetupAttachment(RootComponent);
+	LockOnWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	DeathPetals = CreateDefaultSubobject<UNiagaraComponent>(TEXT("niagara_deathPetals"));
 	DeathPetals->SetupAttachment(GetMesh(), TEXT("Hips"));
