@@ -28,6 +28,8 @@ public:
 	void Disable();
 	void SwapTarget();
 
+	void UpdateMovementVector(const FVector2D& DirecionalVector);
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -41,19 +43,20 @@ protected:
 	void GetVisibleImpactedActors(TArray<AActor*>& OutVisiblePawns, const TArray<FHitResult>& PawnHits);
 	void DoLineTraceAgainstWorldStatic(FHitResult& OutHitResult, const FVector& TraceStart, const FVector& TraceEnd);
 
-	float GetDistanceToTarget(const AActor* Target);
-
 	void ShowLockOnWidgetOnActor(AActor* Actor);
 	void HideLockOnWidgetOnActor(AActor* Actor);
 
 	int16 SelectNextIndex();
 
-	FRotator GetFocusToTargetRotation();
-
 	bool IsLockOnActive();
 
-	UFUNCTION()
+	float GetDistanceToTarget(const AActor* Target);
+	FRotator GetFocusToTargetRotation();
 	void LerpControllerRotation(float Alpha);
+	void LerpCharacterYawRotation(float Alpha);
+
+	UFUNCTION()
+	void LerpRotationToFaceEnemy(float Alpha);
 
 	/*
 	* Variables
@@ -108,7 +111,18 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "LockOn Properties")
 	float DistanceToCurrentEnemy;
 
+	UPROPERTY(VisibleAnywhere, Category = "LockOn Properties")
+	FRotator FocusToTargetRotation;
+
 	UPROPERTY(VisibleAnywhere, Category = "LockOn Properties|Timeline")
 	FTimeline RotationTimeline;
+
+	UPROPERTY(VisibleAnywhere, Category = "LockOn Properties")
+	float MovementDirectionDeg;
+
+public:
+
+	/** Returns the movement direction in degrees */
+	FORCEINLINE float GetMovementDirection() const { return MovementDirectionDeg; }
 
 };

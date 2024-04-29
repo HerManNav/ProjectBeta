@@ -14,6 +14,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GroomComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
@@ -145,23 +146,26 @@ void ASlashCharacter::Move(const FInputActionValue& Value)
 {	
 	if (IsAttacking()) return;
 
-	const FVector2D Amount = Value.Get<FVector2D>();
+	const FVector2D DirectionalVector = Value.Get<FVector2D>();
 	if (Controller)
 	{
+		if (bIsLockOnEnabled && LockOnSystem)
+			LockOnSystem->UpdateMovementVector(DirectionalVector);
+
 		const FVector forwardDirection = FVector::CrossProduct(ViewCamera->GetRightVector(), FVector::UpVector);
 		const FVector rightDirection = ViewCamera->GetRightVector();
-		AddMovementInput(forwardDirection, Amount.X);
-		AddMovementInput(rightDirection, Amount.Y);
+		AddMovementInput(forwardDirection, DirectionalVector.X);
+		AddMovementInput(rightDirection, DirectionalVector.Y);
 
 		// This is the solution presented by Stephen (the result is the same). I like my solution (this one's maybe better in terms of performance)
 		/*const FRotator ControlRotation = GetControlRotation();
 		const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
 
 		const FVector forwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(forwardDirection, Amount.X);
+		AddMovementInput(forwardDirection, DirectionalVector.X);
 
 		const FVector rightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		AddMovementInput(rightDirection, Amount.Y);*/
+		AddMovementInput(rightDirection, DirectionalVector.Y);*/
 	}
 }
 
@@ -290,12 +294,18 @@ void ASlashCharacter::LockOnEnableDisable()
 		if (!bIsLockOnEnabled)
 		{
 			if (LockOnSystem->Enable() > 0)
+			{
 				bIsLockOnEnabled = true;
+
+				GetCharacterMovement()->bOrientRotationToMovement = false;
+			}
 		}
 		else
 		{
 			LockOnSystem->Disable();
 			bIsLockOnEnabled = false;
+
+			GetCharacterMovement()->bOrientRotationToMovement = true;
 		}
 	}
 }

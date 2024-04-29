@@ -21,7 +21,7 @@ void ULockOnComponent::BeginPlay()
 	Super::BeginPlay();
 
 	FOnTimelineFloat InterpFunction;
-	InterpFunction.BindUFunction(this, TEXT("LerpControllerRotation"));
+	InterpFunction.BindUFunction(this, TEXT("LerpRotationToFaceEnemy"));
 
 	RotationTimeline.AddInterpFloat(TimelineCurve, InterpFunction);
 }
@@ -47,8 +47,6 @@ int16 ULockOnComponent::Enable()
 		CurrentTarget = Targets[CurrentTargetIndex];
 		ShowLockOnWidgetOnActor(CurrentTarget);
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("num of targets %d"), Targets.Num())
 
 	return Targets.Num();
 }
@@ -127,6 +125,7 @@ void ULockOnComponent::Disable()
 
 	Targets.Empty();
 	CurrentTargetIndex = 0;
+	MovementDirectionDeg = 0.f;
 
 	HideLockOnWidgetOnActor(CurrentTarget);
 	RotationTimeline.Stop();
@@ -176,6 +175,8 @@ void ULockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	DistanceToCurrentEnemy = GetDistanceToTarget(CurrentTarget);
 	if (DistanceToCurrentEnemy > DistanceToDeactivateLockOn)
 	{
+		FocusToTargetRotation = GetFocusToTargetRotation();
+
 		// This logic implies that the Timeline will be only played for the first of its Alpha values (in each frame it will fire
 		// the delegate LerpControllerRotation(Alpha)) for the first Alpha > 0.f, but this is ok since in the next frame, the Lerp
 		// will consider the current controller (camera) position and move towards the Target more slowly than in the previus one,
@@ -192,15 +193,6 @@ float ULockOnComponent::GetDistanceToTarget(const AActor* Target)
 
 /** Focus target */
 
-void ULockOnComponent::LerpControllerRotation(float Alpha)
-{
-	FRotator CurrentControllerRotation = ControlledActor->GetActorRotation();
-	FRotator FocusToTargetRotation = GetFocusToTargetRotation();
-	FRotator LerpedRotation = UKismetMathLibrary::RLerp(CurrentControllerRotation, FocusToTargetRotation, Alpha, false);
-
-	Owner->GetController()->SetControlRotation(LerpedRotation);
-}
-
 FRotator ULockOnComponent::GetFocusToTargetRotation()
 {
 	FVector OwnerLocation = Owner->GetActorLocation();
@@ -214,9 +206,38 @@ FRotator ULockOnComponent::GetFocusToTargetRotation()
 	return UKismetMathLibrary::FindLookAtRotation(CameraLocation, CurrentTargetLocation);
 }
 
+void ULockOnComponent::LerpRotationToFaceEnemy(float Alpha)
+{
+	LerpControllerRotation(Alpha);
+	LerpCharacterYawRotation(Alpha);
+}
+
+void ULockOnComponent::LerpControllerRotation(float Alpha)
+{
+	FRotator CurrentControllerRotation = ControlledActor->GetActorRotation();
+	FRotator FocusToTargetRotation = FocusToTargetRotation;
+	FRotator LerpedRotation = UKismetMathLibrary::RLerp(CurrentControllerRotation, FocusToTargetRotation, Alpha, false);
+
+	Owner->GetController()->SetControlRotation(LerpedRotation);
+}
+
+void ULockOnComponent::LerpCharacterYawRotation(float Alpha)
+{
+	FRotator CurrentActorRotation2D = FRotator(0.f, Owner->GetActorRotation().Yaw, 0.f);
+	FRotator FocusToTargetRotation2D = FRotator(0.f, FocusToTargetRotation.Yaw, 0.f);
+	FRotator LerpedRotation2D = UKismetMathLibrary::RLerp(CurrentActorRotation2D, FocusToTargetRotation2D, Alpha, false);
+
+	Owner->SetActorRotation(LerpedRotation2D);
+}
+
 /** General methods */
 
 bool ULockOnComponent::IsLockOnActive()
 {
 	return bActivated && Targets.Num() > 0;
+}
+
+void ULockOnComponent::UpdateMovementVector(const FVector2D& DirecionalVector)
+{
+	MovementDirectionDeg = UKismetMathLibrary::DegAtan2(DirecionalVector.Y, DirecionalVector.X);
 }

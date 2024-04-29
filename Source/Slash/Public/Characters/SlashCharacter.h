@@ -201,7 +201,7 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<ULockOnComponent> LockOnSystem;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsLockOnEnabled = false;
 	
 private:
@@ -249,5 +249,7 @@ public:
 	FORCEINLINE EEquipState GetEquipState() const { return EquipState; }
 
 	FORCEINLINE EActionState GetCharacterActionState() const { return ActionState; }
+
+	FORCEINLINE ULockOnComponent* GetLockOnComponent() const { return LockOnSystem; }
 
 };

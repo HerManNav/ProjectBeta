@@ -10,6 +10,7 @@
 
 class ASlashCharacter;
 class UCharacterMovementComponent;
+class ULockOnComponent;
 
 /**
  * 
@@ -32,7 +33,13 @@ public:
 	TObjectPtr<UCharacterMovementComponent> SlashCharacterMovement;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
+	TObjectPtr<ULockOnComponent> SlashLockOnComponent;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	float GroundSpeed;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement)
+	float MovementDirection;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	bool bIsFalling;
