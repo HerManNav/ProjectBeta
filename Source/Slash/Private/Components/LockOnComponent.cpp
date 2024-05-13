@@ -215,19 +215,19 @@ void ULockOnComponent::LerpRotationToFaceEnemy(float Alpha)
 void ULockOnComponent::LerpControllerRotation(float Alpha)
 {
 	FRotator CurrentControllerRotation = ControlledActor->GetActorRotation();
-	FRotator FocusToTargetRotation = FocusToTargetRotation;
-	FRotator LerpedRotation = UKismetMathLibrary::RLerp(CurrentControllerRotation, FocusToTargetRotation, Alpha, false);
+	FRotator FocusToTargetRotation_ForLerp = FocusToTargetRotation;
+	FRotator ControllerLerpedRotation = UKismetMathLibrary::RLerp(CurrentControllerRotation, FocusToTargetRotation_ForLerp, Alpha, false);
 
-	Owner->GetController()->SetControlRotation(LerpedRotation);
+	Owner->GetController()->SetControlRotation(ControllerLerpedRotation);
 }
 
 void ULockOnComponent::LerpCharacterYawRotation(float Alpha)
 {
-	FRotator CurrentActorRotation2D = FRotator(0.f, Owner->GetActorRotation().Yaw, 0.f);
-	FRotator FocusToTargetRotation2D = FRotator(0.f, FocusToTargetRotation.Yaw, 0.f);
-	FRotator LerpedRotation2D = UKismetMathLibrary::RLerp(CurrentActorRotation2D, FocusToTargetRotation2D, Alpha, false);
+	FRotator OwnerRotation = FRotator(0.f, Owner->GetActorRotation().Yaw, 0.f);
+	FRotator FocusToTargetRotation_ForLerp = FRotator(0.f, FocusToTargetRotation.Yaw, 0.f);
+	FRotator OwnerLerpedRotation = UKismetMathLibrary::RLerp(OwnerRotation, FocusToTargetRotation_ForLerp, Alpha, false);
 
-	Owner->SetActorRotation(LerpedRotation2D);
+	Owner->SetActorRotation(OwnerLerpedRotation);
 }
 
 /** General methods */
