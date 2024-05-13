@@ -169,7 +169,7 @@ int16 ULockOnComponent::SelectNextIndex()
 void ULockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	if (!IsLockOnActive()) return;
-
+	
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
 	DistanceToCurrentEnemy = GetDistanceToTarget(CurrentTarget);
@@ -177,6 +177,7 @@ void ULockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	{
 		FocusToTargetRotation = GetFocusToTargetRotation();
 
+		UE_LOG(LogTemp, Warning, TEXT("hey"))
 		// This logic implies that the Timeline will be only played for the first of its Alpha values (in each frame it will fire
 		// the delegate LerpControllerRotation(Alpha)) for the first Alpha > 0.f, but this is ok since in the next frame, the Lerp
 		// will consider the current controller (camera) position and move towards the Target more slowly than in the previus one,
@@ -237,7 +238,18 @@ bool ULockOnComponent::IsLockOnActive()
 	return bActivated && Targets.Num() > 0;
 }
 
-void ULockOnComponent::UpdateMovementVector(const FVector2D& DirecionalVector)
+void ULockOnComponent::UpdateMovementVector(float MovementDirection)
 {
-	MovementDirectionDeg = UKismetMathLibrary::DegAtan2(DirecionalVector.Y, DirecionalVector.X);
+	MovementDirectionDeg = MovementDirection;
+}
+
+void ULockOnComponent::Pause()
+{
+	SetComponentTickEnabled(false);
+	RotationTimeline.Stop();
+}
+
+void ULockOnComponent::Resume()
+{
+	SetComponentTickEnabled(true);
 }

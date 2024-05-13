@@ -28,7 +28,7 @@ ASlashCharacter::ASlashCharacter()
 	bUseControllerRotationRoll = false;
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f);
+	GetCharacterMovement()->RotationRate = FRotator(0.f, DefaultRotationRate, 0.f);
 
 	// Components
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -149,8 +149,10 @@ void ASlashCharacter::Move(const FInputActionValue& Value)
 	const FVector2D DirectionalVector = Value.Get<FVector2D>();
 	if (Controller)
 	{
+		ControllerDirectionDeg = UKismetMathLibrary::DegAtan2(DirectionalVector.Y, DirectionalVector.X);
+
 		if (bIsLockOnEnabled && LockOnSystem)
-			LockOnSystem->UpdateMovementVector(DirectionalVector);
+			LockOnSystem->UpdateMovementVector(ControllerDirectionDeg);
 
 		const FVector forwardDirection = FVector::CrossProduct(ViewCamera->GetRightVector(), FVector::UpVector);
 		const FVector rightDirection = ViewCamera->GetRightVector();
@@ -176,7 +178,6 @@ void ASlashCharacter::Look(const FInputActionValue& Value)
 	{
 		AddControllerYawInput(Amount.X);
 		AddControllerPitchInput(Amount.Y);
-		//viewCamera->AddLocalRotation(FRotator(Amount.Y, Amount.X, 0.f));		// This would move only the camera, not the whole bunch of components
 	}
 }
 
@@ -326,6 +327,9 @@ void ASlashCharacter::DodgeForward()
 
 		ConsumeStamina(DodgeStaminaConsumption);
 		DisableCollisionsForDodge();
+
+		FaceCurrentControllerDirection();
+		LockOnSystem->Pause();
 		PlayMontage(DodgeForwardMontage, DodgeForwardMontage->GetSectionName(0));
 	}
 }
@@ -356,11 +360,25 @@ void ASlashCharacter::DisableCollisionsForDodge()
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Ignore);
 }
 
+void ASlashCharacter::FaceCurrentControllerDirection()
+{
+	FVector CameraForward = ViewCamera->GetForwardVector().GetSafeNormal2D();
+	FVector ActorForward = GetActorForwardVector().GetSafeNormal2D();
+
+	float ActorFacingDirection = UKismetMathLibrary::DegAcos(FVector::DotProduct(CameraForward, ActorForward));
+	float RightOrLeft = FVector::CrossProduct(CameraForward, ActorForward).Z > 0 ? 1.f : -1.f;
+	ActorFacingDirection *= RightOrLeft;
+
+	float DegreesFromCurrentFacingToController = ControllerDirectionDeg - ActorFacingDirection;
+	AddActorWorldRotation(FRotator(0.f, DegreesFromCurrentFacingToController, 0.f));
+}
+
 void ASlashCharacter::DodgeEnd()
 {
 	ActionState = EActionState::EAS_Unoccupied;
 
 	EnableBackCollisionsAfterDodge();
+	LockOnSystem->Resume();
 }
 
 void ASlashCharacter::EnableBackCollisionsAfterDodge()

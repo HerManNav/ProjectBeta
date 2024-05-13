@@ -28,7 +28,10 @@ public:
 	void Disable();
 	void SwapTarget();
 
-	void UpdateMovementVector(const FVector2D& DirecionalVector);
+	void UpdateMovementVector(float MovementDirection);
+
+	void Pause();
+	void Resume();
 
 protected:
 

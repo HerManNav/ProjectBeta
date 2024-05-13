@@ -100,6 +100,7 @@ protected:
 	bool HasEnoughStaminaToDodge();
 	void ConsumeStamina(float StaminaConsumption);
 	void DisableCollisionsForDodge();
+	void FaceCurrentControllerDirection();
 	void EnableBackCollisionsAfterDodge();
 	void RecoverStamina(float RecoverAmount);
 
@@ -136,6 +137,13 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	EActionState ActionState = EActionState::EAS_Unoccupied;
+
+	/** Movement */
+	UPROPERTY(EditDefaultsOnly)
+	float DefaultRotationRate = 600.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float ControllerDirectionDeg;
 
 	/** Components */
 
