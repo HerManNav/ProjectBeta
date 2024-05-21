@@ -24,6 +24,7 @@ So far, this full set of features has been implemented in C++:
   - Enemy's translation Motion Warping to stay closer to character when attacking (used to set the difficulty)
   - Enemy's rotation Motion Warping to face character when attacking
   - Enemy's XP points spawned when killed (Souls)
+  - LockOn plugin integration
 
 - Death:
   - Main character and Enemies random animation deaths
@@ -42,6 +43,8 @@ Some destructibles / Geometry Collections have been also added to the repo.
 
 
 ## Demos
+
+https://github.com/HerManNav/ProjectBeta/assets/2845892/8a5f3159-fc01-42a4-9535-d5c90a1dc66a
 
 https://github.com/HerManNav/ProjectBeta/assets/2845892/b83e1b14-3a3e-4cfa-b319-a68d2c5bac46
 
