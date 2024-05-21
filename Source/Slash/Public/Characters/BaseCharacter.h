@@ -44,7 +44,7 @@ protected:
 	void RecoverHealth(float RecoverAmount);
 
 	/** Attack */
-	virtual void Attack() {};
+	virtual void LightAttack() {};
 	virtual bool CanAttack() { return false; };
 	void ReactToHitBasedOnHitDirection(const FVector& HitPoint);
 	void PlayHitSoundAtLocation(const FVector& Location);

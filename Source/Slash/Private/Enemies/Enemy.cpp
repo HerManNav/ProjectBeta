@@ -293,7 +293,7 @@ void AEnemy::Tick(float DeltaTime)
 * LockOn
 */
 
-void AEnemy::SetLockOnWidgetVisibility(bool bVisibility)
+void AEnemy::SetLockOnWidgetVisibility_Implementation(bool bVisibility)
 {
 	UE_LOG(LogTemp, Warning, TEXT("show/hide lock on widget interface enemy! %d"), bVisibility)
 	if (LockOnWidget)
@@ -458,10 +458,10 @@ void AEnemy::SetAttackTimer()
 	EnemyState = EEnemyState::EES_Attacking;
 
 	const float AttackTime = FMath::RandRange(MinAttackWait, MaxAttackWait);
-	GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::Attack, AttackTime);
+	GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::LightAttack, AttackTime);
 }
 
-void AEnemy::Attack()
+void AEnemy::LightAttack()
 {
 	if (PlayAttackingMontage() != -1)
 	{

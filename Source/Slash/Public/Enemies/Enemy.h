@@ -36,7 +36,7 @@ public:
 	/** </IHitInterface> */
 
 	/** <ILockOnInterface> */
-	virtual void SetLockOnWidgetVisibility(bool bVisibility) override;
+	virtual void SetLockOnWidgetVisibility_Implementation(bool bVisibility) override;
 	/** </ILockOnInterface> */
 
 protected:
@@ -45,7 +45,7 @@ protected:
 
 	/** <ABaseCharacter> */
 	virtual bool CanAttack() override;
-	virtual void Attack() override;
+	virtual void LightAttack() override;
 	virtual void AttackEnd() override;
 	virtual void HitReactEnd() override;
 	virtual void Die_Implementation() override;

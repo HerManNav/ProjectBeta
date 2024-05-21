@@ -108,7 +108,8 @@ void ASlashCharacter::InitHUD()
 
 void ASlashCharacter::InitLockOnComponent()
 {
-	LockOnSystem->Init(this, ViewCamera);
+	if (LockOnSystem)
+		LockOnSystem->Init(this, ViewCamera);
 }
 
 /*
@@ -124,7 +125,7 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASlashCharacter::Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASlashCharacter::Look);
 		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Completed, this, &ASlashCharacter::Equip);
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &ASlashCharacter::Attack);
+		EnhancedInputComponent->BindAction(LightAttackAction, ETriggerEvent::Completed, this, &ASlashCharacter::LightAttack);
 		EnhancedInputComponent->BindAction(DodgeForwardAction, ETriggerEvent::Completed, this, &ASlashCharacter::DodgeForward);
 
 		EnhancedInputComponent->BindAction(ToggleWalkAction, ETriggerEvent::Completed, this, &ASlashCharacter::ToggleWalk);
@@ -149,25 +150,16 @@ void ASlashCharacter::Move(const FInputActionValue& Value)
 	const FVector2D DirectionalVector = Value.Get<FVector2D>();
 	if (Controller)
 	{
-		ControllerDirectionDeg = UKismetMathLibrary::DegAtan2(DirectionalVector.Y, DirectionalVector.X);
-
-		if (bIsLockOnEnabled && LockOnSystem)
+		if (LockOnSystem)
+		{
+			ControllerDirectionDeg = UKismetMathLibrary::DegAtan2(DirectionalVector.X, DirectionalVector.Y);
 			LockOnSystem->UpdateMovementVector(ControllerDirectionDeg);
+		}
 
 		const FVector forwardDirection = FVector::CrossProduct(ViewCamera->GetRightVector(), FVector::UpVector);
 		const FVector rightDirection = ViewCamera->GetRightVector();
-		AddMovementInput(forwardDirection, DirectionalVector.X);
-		AddMovementInput(rightDirection, DirectionalVector.Y);
-
-		// This is the solution presented by Stephen (the result is the same). I like my solution (this one's maybe better in terms of performance)
-		/*const FRotator ControlRotation = GetControlRotation();
-		const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
-
-		const FVector forwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(forwardDirection, DirectionalVector.X);
-
-		const FVector rightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		AddMovementInput(rightDirection, DirectionalVector.Y);*/
+		AddMovementInput(forwardDirection, DirectionalVector.Y);
+		AddMovementInput(rightDirection, DirectionalVector.X);
 	}
 }
 
@@ -314,7 +306,7 @@ void ASlashCharacter::LockOnEnableDisable()
 void ASlashCharacter::LockOnSwapTarget()
 {
 	if (LockOnSystem)
-		LockOnSystem->SwapTarget();
+		LockOnSystem->SwitchTarget();
 }
 
 /** Dodge */
@@ -328,7 +320,7 @@ void ASlashCharacter::DodgeForward()
 		ConsumeStamina(DodgeStaminaConsumption);
 		DisableCollisionsForDodge();
 
-		FaceCurrentControllerDirection();
+		LockOnSystem->FaceCurrentControllerDirection();
 		LockOnSystem->Pause();
 		PlayMontage(DodgeForwardMontage, DodgeForwardMontage->GetSectionName(0));
 	}
@@ -358,19 +350,6 @@ void ASlashCharacter::ConsumeStamina(float StaminaConsumption)
 void ASlashCharacter::DisableCollisionsForDodge()
 {
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Ignore);
-}
-
-void ASlashCharacter::FaceCurrentControllerDirection()
-{
-	FVector CameraForward = ViewCamera->GetForwardVector().GetSafeNormal2D();
-	FVector ActorForward = GetActorForwardVector().GetSafeNormal2D();
-
-	float ActorFacingDirection = UKismetMathLibrary::DegAcos(FVector::DotProduct(CameraForward, ActorForward));
-	float RightOrLeft = FVector::CrossProduct(CameraForward, ActorForward).Z > 0 ? 1.f : -1.f;
-	ActorFacingDirection *= RightOrLeft;
-
-	float DegreesFromCurrentFacingToController = ControllerDirectionDeg - ActorFacingDirection;
-	AddActorWorldRotation(FRotator(0.f, DegreesFromCurrentFacingToController, 0.f));
 }
 
 void ASlashCharacter::DodgeEnd()
@@ -461,12 +440,13 @@ bool ASlashCharacter::CanAttack()
 	return IsArmedOneHandedWeapon() && IsUnoccupied();
 }
 
-void ASlashCharacter::Attack()
+void ASlashCharacter::LightAttack()
 {
-	Super::Attack();
+	Super::LightAttack();
 
 	if (CanAttack())
 	{
+		LockOnSystem->FaceCurrentControllerDirection();
 		if (PlayAttackingMontage() != -1)
 			ActionState = EActionState::EAS_Attacking;
 	}

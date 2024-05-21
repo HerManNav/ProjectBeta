@@ -1,0 +1,3 @@
+[submodule "Plugins/LockOnPlugin"]
+	path = Plugins/LockOnPlugin
+	url = https://github.com/HerManNav/LockOnPlugin.git

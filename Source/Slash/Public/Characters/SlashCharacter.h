@@ -57,7 +57,7 @@ protected:
 
 	/** <ABaseCharacter> */
 	virtual bool CanAttack() override;
-	virtual void Attack() override;
+	virtual void LightAttack() override;
 	virtual void AttackEnd() override;
 	virtual void HitReactEnd() override;
 	virtual void Die_Implementation() override;
@@ -188,7 +188,10 @@ protected:
 	TObjectPtr<UInputAction> EquipAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputAction> AttackAction;
+	TObjectPtr<UInputAction> LightAttackAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<UInputAction> HeavyAttackAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputAction> DodgeForwardAction;

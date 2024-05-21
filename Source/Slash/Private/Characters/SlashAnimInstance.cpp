@@ -27,8 +27,12 @@ void USlashAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	if (SlashCharacterMovement)
 	{
 		GroundSpeed = UKismetMathLibrary::VSizeXY(SlashCharacterMovement->Velocity);	// groundSpeed = slashCharacter->GetVelocity().Length();	// This would work for our case but will get the speed in the 3 axis, not only in the xy
-		MovementDirection = SlashLockOnComponent->GetMovementDirection();
 		bIsFalling = SlashCharacterMovement->IsFalling();
-		EquipState = SlashCharacter->GetEquipState();
 	}
+
+	if (SlashCharacter)
+		EquipState = SlashCharacter->GetEquipState();
+
+	if (SlashLockOnComponent)
+		MovementDirection = SlashLockOnComponent->GetMovementDirection();
 }
