@@ -33,7 +33,7 @@ float ASoul::GetTargetZ()
 		this,
 		TracingStart, TracingEnd,
 		ObjectTypes	, false, ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
+		bShowDebugTrace ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
 		HitResult,
 		true);
 

@@ -40,6 +40,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Soul properties")
 	float Lifespan = 30.f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Soul properties|Debug")
+	bool bShowDebugTrace = false;
+
 public:
 
 	/** Getters & Setters */

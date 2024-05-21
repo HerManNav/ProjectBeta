@@ -109,7 +109,10 @@ void ASlashCharacter::InitHUD()
 void ASlashCharacter::InitLockOnComponent()
 {
 	if (LockOnSystem)
-		LockOnSystem->Init(this, ViewCamera);
+	{
+		if (!LockOnSystem->Init(ViewCamera))
+			LockOnSystem = nullptr;
+	}
 }
 
 /*
@@ -320,8 +323,11 @@ void ASlashCharacter::DodgeForward()
 		ConsumeStamina(DodgeStaminaConsumption);
 		DisableCollisionsForDodge();
 
-		LockOnSystem->FaceCurrentControllerDirection();
-		LockOnSystem->Pause();
+		if (LockOnSystem)
+		{
+			LockOnSystem->FaceCurrentControllerDirection();
+			LockOnSystem->Pause();
+		}
 		PlayMontage(DodgeForwardMontage, DodgeForwardMontage->GetSectionName(0));
 	}
 }
@@ -357,7 +363,8 @@ void ASlashCharacter::DodgeEnd()
 	ActionState = EActionState::EAS_Unoccupied;
 
 	EnableBackCollisionsAfterDodge();
-	LockOnSystem->Resume();
+	if (LockOnSystem)
+		LockOnSystem->Resume();
 }
 
 void ASlashCharacter::EnableBackCollisionsAfterDodge()
@@ -446,7 +453,8 @@ void ASlashCharacter::LightAttack()
 
 	if (CanAttack())
 	{
-		LockOnSystem->FaceCurrentControllerDirection();
+		if (LockOnSystem)
+			LockOnSystem->FaceCurrentControllerDirection();
 		if (PlayAttackingMontage() != -1)
 			ActionState = EActionState::EAS_Attacking;
 	}
